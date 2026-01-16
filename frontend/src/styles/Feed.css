@@ -1,0 +1,74 @@
+.feed {
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-loading,
+.feed-error,
+.feed-empty {
+  text-align: center;
+  padding: 40px 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feed-loading {
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.feed-error {
+  color: #ef4444;
+  font-size: 15px;
+}
+
+.feed-empty {
+  color: #6b7280;
+}
+
+.feed-empty p {
+  font-size: 16px;
+  margin: 8px 0;
+}
+
+.feed-empty-subtitle {
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+.load-more-btn {
+  margin: 20px auto;
+  padding: 12px 32px;
+  background: white;
+  color: #8b5cf6;
+  border: 2px solid #8b5cf6;
+  border-radius: 24px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.load-more-btn:hover {
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  color: white;
+  border-color: transparent;
+  transform: translateY(-2px);
+}
+
+/* Added styling for infinite scroll loading and end states */
+.feed-loading-more {
+  text-align: center;
+  padding: 20px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.feed-end {
+  text-align: center;
+  padding: 30px 20px;
+  color: #9ca3af;
+  font-size: 14px;
+  font-style: italic;
+}

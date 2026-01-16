@@ -1,0 +1,64 @@
+/* Post header actions */
+.post-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+/* Follow button in post card */
+.follow-btn {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.follow-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.follow-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .post-header-actions {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  
+  .follow-btn {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+  }
+  
+  .post-time {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .post-header-actions {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

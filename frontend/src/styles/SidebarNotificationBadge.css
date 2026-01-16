@@ -1,0 +1,13 @@
+/* Sidebar notification badge */
+.sidebar-notification-badge {
+  background-color: #7c3aed;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
+  margin-left: auto;
+}

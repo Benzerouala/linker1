@@ -1,0 +1,171 @@
+.register-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #faf5ff 0%, #fce7f3 50%, #eff6ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.register-content {
+  width: 100%;
+  max-width: 72rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  position: relative;
+  z-index: 10;
+}
+
+.register-branding {
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 50%;
+  padding-right: 3rem;
+}
+
+@media (min-width: 1024px) {
+  .register-branding {
+    display: flex;
+  }
+}
+
+.register-branding-title {
+  font-size: 2.25rem;
+  font-weight: bold;
+  color: rgb(31, 41, 55);
+  line-height: 1.2;
+}
+
+.register-branding-desc {
+  font-size: 1.125rem;
+  color: rgb(75, 85, 99);
+}
+
+.register-members {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.register-avatars {
+  display: flex;
+  margin-left: -0.75rem;
+}
+
+.register-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 4px solid white;
+}
+
+.register-avatar-purple {
+  background: linear-gradient(135deg, rgb(192, 132, 252), rgb(147, 51, 234));
+}
+
+.register-avatar-pink {
+  background: linear-gradient(135deg, rgb(244, 114, 182), rgb(219, 39, 119));
+}
+
+.register-avatar-blue {
+  background: linear-gradient(135deg, rgb(96, 165, 250), rgb(37, 99, 235));
+}
+
+.register-members-text {
+  font-size: 0.875rem;
+  color: rgb(75, 85, 99);
+}
+
+.register-members-text span {
+  font-weight: bold;
+  color: rgb(31, 41, 55);
+}
+
+.register-form-wrapper {
+  width: 100%;
+  max-width: 28rem;
+  margin-top: 90px !important;
+}
+
+.form-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1024px) {
+  .register-form-wrapper {
+    width: 50%;
+  }
+}
+
+.register-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.register-footer p {
+  color: rgb(75, 85, 99);
+}
+
+.register-terms {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: rgb(107, 114, 128);
+}
+
+.register-terms a {
+  color: rgb(147, 51, 234);
+  text-decoration: none;
+}
+
+.register-terms a:hover {
+  text-decoration: underline;
+}
+
+.auth-split-page {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+}
+
+.auth-split-left {
+  flex: 1 1 55%;
+  min-width: 0;
+  height: 100vh;
+  overflow: auto;
+  background: #0b0b0f;
+}
+
+.auth-split-left .feed {
+  padding: 24px;
+}
+
+.auth-split-right {
+  flex: 1 1 45%;
+  min-width: 420px;
+}
+
+.auth-split-right .register-container {
+  min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+  .auth-split-left {
+    display: none;
+  }
+  .auth-split-right {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}

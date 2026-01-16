@@ -1,0 +1,798 @@
+/* Dark theme (body.dark) */
+body.dark {
+  background: #0f0f13 !important;
+  color: #e5e7eb !important;
+}
+
+body.dark .sidebar {
+  background: #111115;
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .sidebar-link {
+  color: #e5e7eb;
+}
+
+body.dark .sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+body.dark .sidebar-link.active {
+  background: #1f1f23;
+  color: #8b5cf6;
+}
+
+body.dark .sidebar-new-post {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+}
+
+body.dark .sidebar-user-menu {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .sidebar-user-trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .sidebar-username {
+  color: #e5e7eb;
+}
+
+body.dark .sidebar-user-handle {
+  color: #9ca3af;
+}
+
+body.dark .sidebar-dropdown-menu {
+  background: #1f1f23;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .sidebar-dropdown-item {
+  color: #e5e7eb;
+}
+
+body.dark .sidebar-dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .sidebar-dropdown-divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .sidebar-theme-toggle {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #9ca3af;
+}
+
+body.dark .sidebar-theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-container {
+  background: #0f0f13;
+}
+
+body.dark .dashboard-title {
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-subtitle {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-search-box {
+  background: #111115;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-search-input-wrapper {
+  background: #111115;
+}
+
+body.dark .dashboard-search-input {
+  background: #1f1f23;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-search-input::placeholder {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-search-tabs {
+  background: #111115;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .dashboard-search-tab {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-search-tab.active {
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-user-row {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark .dashboard-user-name {
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-user-username {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-user-bio {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-follow-btn {
+  background: #1f1f23;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e5e7eb;
+}
+
+body.dark .dashboard-follow-btn.btn-follow {
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+  color: #ffffff;
+}
+
+body.dark .dashboard-follow-btn.btn-followed {
+  background: #374151;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark .dashboard-follow-btn.btn-requested {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+body.dark .dashboard-search-footer {
+  background: #111115;
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark .dashboard-search-all {
+  color: #a78bfa;
+}
+
+body.dark .dashboard-search-empty {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-search-loading {
+  color: #9ca3af;
+}
+
+body.dark .dashboard-search-message.error {
+  color: #fca5a5;
+}
+
+/* Post Card Dark Mode */
+body.dark .post-card {
+  background: #111115;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .post-author-name {
+  color: #e5e7eb;
+}
+
+body.dark .post-author-username {
+  color: #9ca3af;
+}
+
+body.dark .post-time {
+  color: #6b7280;
+}
+
+body.dark .post-content {
+  color: #e5e7eb;
+}
+
+body.dark .post-avatar {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .post-actions {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .action-btn {
+  color: #9ca3af;
+}
+
+body.dark .action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #e5e7eb;
+}
+
+body.dark .action-btn.liked:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+body.dark .action-btn.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+}
+
+body.dark .action-btn.active:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+body.dark .reply-input-wrapper {
+  background: #1f1f23;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark .reply-input-wrapper:focus-within {
+  border-color: #60a5fa;
+  background: #111115;
+}
+
+body.dark .reply-input {
+  color: #e5e7eb;
+}
+
+body.dark .reply-input::placeholder {
+  color: #6b7280;
+}
+
+body.dark .reply-avatar-img {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .post-replies-section {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .reply-author {
+  color: #e5e7eb;
+}
+
+body.dark .reply-time {
+  color: #6b7280;
+}
+
+body.dark .reply-text {
+  color: #d1d5db;
+}
+
+body.dark .save-btn {
+  background: #3b82f6;
+}
+
+body.dark .save-btn:hover {
+  background: #2563eb;
+}
+
+body.dark .cancel-btn {
+  background: #374151;
+  color: #d1d5db;
+}
+
+body.dark .cancel-btn:hover {
+  background: #4b5563;
+}
+
+/* Profile Pages Dark Mode */
+body.dark .profile-header {
+  background: #111115;
+}
+
+body.dark .profile-avatar {
+  border-color: #111115;
+  background: #111115;
+}
+
+body.dark .profile-name {
+  color: #e5e7eb;
+}
+
+body.dark .profile-username {
+  color: #9ca3af;
+}
+
+body.dark .profile-bio {
+  color: #d1d5db;
+}
+
+body.dark .profile-meta-item {
+  color: #9ca3af;
+}
+
+body.dark .profile-stat-number {
+  color: #e5e7eb;
+}
+
+body.dark .profile-stat-label {
+  color: #9ca3af;
+}
+
+body.dark .profile-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-tab {
+  color: #9ca3af;
+}
+
+body.dark .profile-tab:hover {
+  color: #a78bfa;
+}
+
+body.dark .profile-tab.active {
+  color: #a78bfa;
+}
+
+body.dark .profile-posts-empty {
+  background: #111115;
+  color: #9ca3af;
+}
+
+body.dark .profile-posts-empty h3 {
+  color: #e5e7eb;
+}
+
+body.dark .profile-follow-list {
+  background: #111115;
+}
+
+body.dark .follow-card {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark .follow-name {
+  color: #e5e7eb;
+}
+
+body.dark .follow-username {
+  color: #9ca3af;
+}
+
+body.dark .profile-edit-btn {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+body.dark .profile-edit-btn:hover {
+  background: #4b5563;
+}
+
+body.dark .profile-share-btn {
+  background: #111115;
+  color: #a78bfa;
+  border-color: #a78bfa;
+}
+
+body.dark .profile-share-btn:hover {
+  background: rgba(167, 139, 250, 0.1);
+}
+
+body.dark .profile-modal {
+  background: #1f1f23;
+}
+
+body.dark .profile-modal-header h3 {
+  color: #e5e7eb;
+}
+
+body.dark .close-modal-btn {
+  color: #9ca3af;
+}
+
+body.dark .profile-edit-form label {
+  color: #d1d5db;
+}
+
+body.dark .profile-edit-form input,
+body.dark .profile-edit-form textarea {
+  background: #111115;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e5e7eb;
+}
+
+body.dark .profile-edit-form input:focus,
+body.dark .profile-edit-form textarea:focus {
+  border-color: #a78bfa;
+}
+
+body.dark .cancel-btn {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+body.dark .cancel-btn:hover {
+  background: #4b5563;
+}
+
+body.dark .save-btn {
+  background: #a78bfa;
+}
+
+body.dark .save-btn:hover {
+  background: #9333ea;
+}
+
+body.dark .requests-list {
+  background: #111115;
+}
+
+body.dark .request-card {
+  background: #1f1f23;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .request-info h4 {
+  color: #e5e7eb;
+}
+
+body.dark .request-info p {
+  color: #9ca3af;
+}
+
+body.dark .request-bio {
+  color: #d1d5db !important;
+}
+
+body.dark .accept-btn {
+  background: #6366f1;
+}
+
+body.dark .reject-btn {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+body.dark .reject-btn:hover {
+  background: #4b5563;
+}
+
+/* Public Profile Dark Mode */
+body.dark .public-profile-page {
+  background: #0f0f13;
+}
+
+body.dark .public-profile {
+  background: #0f0f13;
+}
+
+body.dark .public-profile-container {
+  background: #111115;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+body.dark .public-profile-error h2 {
+  color: #e5e7eb;
+}
+
+body.dark .public-profile-error p {
+  color: #9ca3af;
+}
+
+body.dark .private-profile-container {
+  background: #111115;
+}
+
+body.dark .private-profile-header {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .private-profile-info h2 {
+  color: #e5e7eb;
+}
+
+body.dark .private-profile-info p {
+  color: #9ca3af;
+}
+
+body.dark .private-profile-message {
+  background: #1f1f23;
+}
+
+body.dark .private-profile-message h3 {
+  color: #e5e7eb;
+}
+
+body.dark .private-profile-message p {
+  color: #9ca3af;
+}
+
+body.dark .private-profile-stats {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .stat-number {
+  color: #e5e7eb;
+}
+
+body.dark .stat-label {
+  color: #9ca3af;
+}
+
+body.dark .profile-header-content {
+  background: #111115;
+}
+
+body.dark .profile-header {
+  background: #111115;
+}
+
+body.dark .profile-cover-placeholder {
+  background: #1f1f23;
+}
+
+body.dark .profile-avatar-wrapper {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-avatar {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-name {
+  color: #e5e7eb;
+}
+
+body.dark .profile-username {
+  color: #9ca3af;
+}
+
+body.dark .profile-bio {
+  color: #d1d5db;
+}
+
+body.dark .profile-meta {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-meta-item {
+  color: #9ca3af;
+}
+
+body.dark .profile-meta-item svg {
+  color: #6b7280;
+}
+
+body.dark .profile-meta-item a {
+  color: #a78bfa;
+}
+
+body.dark .profile-stats {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-stat {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-stat-number {
+  color: #e5e7eb;
+}
+
+body.dark .profile-stat-label {
+  color: #9ca3af;
+}
+
+body.dark .profile-tabs {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-tab {
+  color: #9ca3af;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark .profile-tab.active {
+  color: #e5e7eb;
+  border-color: #a78bfa;
+  background: rgba(167, 139, 250, 0.1);
+}
+
+body.dark .profile-follow-list {
+  background: #111115;
+}
+
+body.dark .follow-card {
+  background: #1a1a1f;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .follow-card:hover {
+  background: #25252b;
+}
+
+body.dark .follow-avatar {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .follow-name {
+  color: #e5e7eb;
+}
+
+body.dark .follow-username {
+  color: #9ca3af;
+}
+
+body.dark .unfollow-btn {
+  background: #dc2626;
+  color: white;
+}
+
+body.dark .unfollow-btn:hover {
+  background: #b91c1c;
+}
+
+body.dark .profile-posts-section {
+  background: #111115;
+}
+
+body.dark .posts-title {
+  color: #e5e7eb;
+}
+
+body.dark .profile-posts-empty {
+  background: #1a1a1f;
+  color: #9ca3af;
+}
+
+body.dark .profile-posts-empty h3 {
+  color: #e5e7eb;
+}
+
+body.dark .profile-posts-empty p {
+  color: #9ca3af;
+}
+
+body.dark .profile-posts-empty svg {
+  color: #4b5563;
+}
+
+body.dark .posts-grid {
+  background: #111115;
+}
+
+body.dark .follow-btn {
+  background: #6366f1;
+  color: white;
+}
+
+body.dark .follow-btn:hover {
+  background: #4f46e5;
+}
+
+body.dark .follow-btn.requested {
+  background: #6b7280;
+  color: white;
+}
+
+body.dark .profile-actions {
+  border-color: rgba(255, 255, 255, 255, 0.08);
+}
+
+body.dark .profile-avatar-wrapper {
+  border-color: #111115;
+}
+
+body.dark .profile-name {
+  color: #e5e7eb;
+}
+
+body.dark .profile-username {
+  color: #9ca3af;
+}
+
+body.dark .profile-bio {
+  color: #d1d5db;
+}
+
+body.dark .profile-meta-item {
+  color: #9ca3af;
+}
+
+body.dark .profile-posts-section {
+  background: #111115;
+}
+
+body.dark .posts-title {
+  color: #e5e7eb;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-posts-empty {
+  color: #9ca3af;
+}
+
+body.dark .profile-posts-empty h3 {
+  color: #e5e7eb;
+}
+
+body.dark .profile-tabs {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .profile-tab {
+  color: #9ca3af;
+}
+
+body.dark .profile-tab:hover {
+  color: #d1d5db;
+}
+
+body.dark .profile-tab.active {
+  color: #a78bfa;
+}
+
+body.dark .profile-tab.active::after {
+  background-color: #a78bfa;
+}
+
+body.dark .profile-follow-list {
+  background: #111115;
+}
+
+body.dark .follow-card {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+body.dark .follow-name {
+  color: #e5e7eb;
+}
+
+body.dark .follow-username {
+  color: #9ca3af;
+}
+
+body.dark .follow-btn {
+  background: #111115;
+  color: #a78bfa;
+  border-color: #a78bfa;
+}
+
+body.dark .follow-btn:hover {
+  background: #a78bfa;
+  color: white;
+}
+
+body.dark .follow-btn.following {
+  background: #a78bfa;
+  color: white;
+}
+
+body.dark .follow-btn.following:hover {
+  background: #9333ea;
+}
+
+body.dark .follow-btn.requested {
+  background: #f59e0b;
+  color: white;
+}
+
+body.dark .follow-btn.requested:hover {
+  background: #d97706;
+}
+
+body.dark .unfollow-btn {
+  background: #111115;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+body.dark .unfollow-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+body.dark .profile-loading {
+  color: #9ca3af;
+}
