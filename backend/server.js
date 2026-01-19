@@ -39,6 +39,11 @@ app.use(
         process.env.FRONTEND_URL
       ].filter(Boolean);
       
+      // In development, allow all origins
+      if (process.env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
+      
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
