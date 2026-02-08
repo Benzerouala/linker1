@@ -19,6 +19,11 @@ import Settings from "./pages/Settings";
 import PublicProfile from "./pages/PublicProfile";
 import Notifications from "./pages/Notifications";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ToastProvider } from "./contexts/ToastContext";
+import { SocketProvider } from "./contexts/SocketContext";
+import { CreatePostModalProvider } from "./contexts/CreatePostModalContext";
+import CreatePostModal from "./components/CreatePostModal";
+import Toast from "./components/Toast";
 import "./styles/DarkTheme.css";
 
 function AppContent() {
@@ -29,6 +34,7 @@ function AppContent() {
         <Route path="/dashboard" element={<Dashboard />}>
           <Route index element={<Navigate to="posts" replace />} />
           <Route path="posts" element={<DashboardPosts />} />
+          <Route path="posts/:id" element={<DashboardPosts />} />
           <Route path="notifications" element={<DashboardNotifications />} />
           <Route path="explore" element={<DashboardExplore />} />
           <Route path="profile" element={<DashboardProfile />} />
@@ -38,10 +44,10 @@ function AppContent() {
         <Route path="/login" element={<Login />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="*" element={<Navigate to="/" />} />
         <Route path="/search" element={<Search />} />
         <Route path="/profile/:username" element={<PublicProfile />} />
         <Route path="/notifications" element={<Notifications />} />
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </>
   );
@@ -50,9 +56,17 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <ToastProvider>
+        <SocketProvider>
+          <CreatePostModalProvider>
+            <Router>
+              <AppContent />
+              <Toast />
+              <CreatePostModal />
+            </Router>
+          </CreatePostModalProvider>
+        </SocketProvider>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
+import { useToastContext } from "../../contexts/ToastContext";
 import PostCard from "../../components/PostCard";
 import Pagination from "../../components/Pagination";
 import { getImageUrl } from "../../utils/imageHelper";
@@ -10,7 +11,8 @@ import "../../styles/DashboardProfile.css";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export default function DashboardProfile() {
-  const { user, setUser } = useOutletContext(); // Ajout de setUser pour mettre à jour l'état global
+  const { user, setUser } = useOutletContext();
+  const { success, error: showError } = useToastContext();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -18,6 +20,8 @@ export default function DashboardProfile() {
 
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [sentRequests, setSentRequests] = useState([]);
+  const [loadingSentRequests, setLoadingSentRequests] = useState(false);
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [loadingFollows, setLoadingFollows] = useState(false);
@@ -27,7 +31,7 @@ export default function DashboardProfile() {
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
-    totalItems: 0
+    totalItems: 0,
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -44,11 +48,21 @@ export default function DashboardProfile() {
   });
   const [saveLoading, setSaveLoading] = useState(false);
 
+  const safeFollowersCount = Math.max(
+    user?.followersCount || 0,
+    followers.length,
+  );
+  const safeFollowingCount = Math.max(
+    user?.followingCount || 0,
+    following.length,
+  );
+
   useEffect(() => {
     const userId = user?._id || user?.id;
     if (userId) {
       fetchUserPosts(userId);
       fetchPendingRequests();
+      fetchSentRequests();
       fetchFollowLists(userId);
     }
   }, [user]);
@@ -65,22 +79,25 @@ export default function DashboardProfile() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await fetch(`${API_URL}/threads/user/${userId}?page=${pageNum}&limit=10`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_URL}/threads/user/${userId}?page=${pageNum}&limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       const data = await response.json();
       if (data.success) {
         setPosts(data.data.threads || []);
-        
+
         // Update pagination info
         if (data.data.pagination) {
           setPagination({
             currentPage: data.data.pagination.currentPage,
             totalPages: data.data.pagination.totalPages,
-            totalItems: data.data.pagination.totalThreads
+            totalItems: data.data.pagination.totalThreads,
           });
           setCurrentPage(data.data.pagination.currentPage);
         }
@@ -114,7 +131,7 @@ export default function DashboardProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
@@ -125,6 +142,32 @@ export default function DashboardProfile() {
       console.error("Error fetching pending requests:", err);
     } finally {
       setLoadingRequests(false);
+    }
+  };
+
+  const fetchSentRequests = async () => {
+    try {
+      setLoadingSentRequests(true);
+      const token = localStorage.getItem("token");
+      const timestamp = Date.now();
+
+      const response = await fetch(
+        `${API_URL}/follows/sent?t=${timestamp}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSentRequests(data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching sent requests:", err);
+    } finally {
+      setLoadingSentRequests(false);
     }
   };
 
@@ -197,24 +240,28 @@ export default function DashboardProfile() {
         setPendingRequests((prev) =>
           prev.filter(
             (req) =>
-              req.follower._id !== followerId && req.follower.id !== followerId
-          )
+              req.follower._id !== followerId && req.follower.id !== followerId,
+          ),
         );
 
         // Add to followers list since they are now following us
         const acceptedUser = pendingRequests.find(
           (req) =>
-            req.follower._id === followerId || req.follower.id === followerId
+            req.follower._id === followerId || req.follower.id === followerId,
         );
         if (acceptedUser) {
           setFollowers((prev) => [...prev, acceptedUser.follower]);
         }
+        setUser((prev) => ({
+          ...prev,
+          followersCount: (prev.followersCount || 0) + 1,
+        }));
 
-        alert("Demande acceptée");
+        success("Demande acceptée");
       }
     } catch (err) {
       console.error("Error accepting request:", err);
-      alert("Erreur lors de l'acceptation de la demande");
+      showError("Erreur lors de l'acceptation de la demande");
     }
   };
 
@@ -233,14 +280,14 @@ export default function DashboardProfile() {
         setPendingRequests((prev) =>
           prev.filter(
             (req) =>
-              req.follower._id !== followerId && req.follower.id !== followerId
-          )
+              req.follower._id !== followerId && req.follower.id !== followerId,
+          ),
         );
-        alert("Demande rejetée");
+        success("Demande rejetée");
       }
     } catch (err) {
       console.error("Error rejecting request:", err);
-      alert("Erreur lors du rejet de la demande");
+      showError("Erreur lors du rejet de la demande");
     }
   };
 
@@ -254,25 +301,25 @@ export default function DashboardProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
       if (response.ok && data.success) {
         // Retirer de la liste des followers
         setFollowers((prev) =>
-          prev.filter((f) => f._id !== followerId && f.id !== followerId)
+          prev.filter((f) => f._id !== followerId && f.id !== followerId),
         );
         // Mettre à jour le compteur
         setUser((prev) => ({
           ...prev,
           followersCount: Math.max(0, (prev.followersCount || 0) - 1),
         }));
-        alert("Abonné supprimé avec succès");
+        success("Abonné supprimé avec succès");
       }
     } catch (err) {
       console.error("Error removing follower:", err);
-      alert("Erreur lors de la suppression de l'abonné");
+      showError("Erreur lors de la suppression de l'abonné");
     }
   };
 
@@ -286,25 +333,55 @@ export default function DashboardProfile() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       const data = await response.json();
       if (response.ok && data.success) {
         // Retirer de la liste des following
         setFollowing((prev) =>
-          prev.filter((f) => f._id !== followingId && f.id !== followingId)
+          prev.filter((f) => f._id !== followingId && f.id !== followingId),
         );
         // Mettre à jour le compteur
         setUser((prev) => ({
           ...prev,
           followingCount: Math.max(0, (prev.followingCount || 0) - 1),
         }));
-        alert("Se désabonné");
+        success("Se désabonné");
       }
     } catch (err) {
       console.error("Error unfollowing user:", err);
-      alert("Erreur lors du désabonnement");
+      showError("Erreur lors du désabonnement");
+    }
+  };
+
+  const handleCancelRequest = async (followingId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${API_URL}/follows/${followingId}/unfollow`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        setSentRequests((prev) =>
+          prev.filter(
+            (req) =>
+              req.following._id !== followingId &&
+              req.following.id !== followingId,
+          ),
+        );
+        success("Demande annulée");
+      }
+    } catch (err) {
+      console.error("Error canceling request:", err);
+      showError("Erreur lors de l'annulation de la demande");
     }
   };
 
@@ -330,7 +407,7 @@ export default function DashboardProfile() {
     const profileUrl = window.location.href;
     navigator.clipboard
       .writeText(profileUrl)
-      .then(() => alert("Lien du profil copié dans le presse-papier !"))
+      .then(() => success("Lien du profil copié dans le presse-papier !"))
       .catch((err) => console.error("Erreur lors de la copie :", err));
   };
 
@@ -341,7 +418,7 @@ export default function DashboardProfile() {
       location: user?.location || "",
       website: user?.website || "",
       hobbies: user?.hobbies || [],
-      birthDate: user?.birthDate ? user.birthDate.split('T')[0] : "",
+      birthDate: user?.birthDate ? user.birthDate.split("T")[0] : "",
       isPrivate: user?.isPrivate || false,
     });
     setIsEditing(true);
@@ -399,7 +476,7 @@ export default function DashboardProfile() {
         setIsEditing(false);
         setProfileImageFile(null);
         setCoverImageFile(null);
-        alert("Profil mis à jour avec succès !");
+        success("Profil mis à jour avec succès !");
       } else {
         setError(data.message || "Erreur lors de la mise à jour");
       }
@@ -418,8 +495,8 @@ export default function DashboardProfile() {
   const handleUpdatePost = (postId, updatedData) => {
     setPosts((prev) =>
       prev.map((post) =>
-        post._id === postId ? { ...post, ...updatedData } : post
-      )
+        post._id === postId ? { ...post, ...updatedData } : post,
+      ),
     );
   };
 
@@ -508,11 +585,16 @@ export default function DashboardProfile() {
                 <input
                   type="text"
                   name="hobbies"
-                  value={editFormData.hobbies.join(', ')}
-                  onChange={(e) => setEditFormData(prev => ({
-                    ...prev,
-                    hobbies: e.target.value.split(',').map(h => h.trim()).filter(h => h)
-                  }))}
+                  value={editFormData.hobbies.join(", ")}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({
+                      ...prev,
+                      hobbies: e.target.value
+                        .split(",")
+                        .map((h) => h.trim())
+                        .filter((h) => h),
+                    }))
+                  }
                   placeholder="Ex: Lecture, Sport, Musique"
                 />
               </div>
@@ -549,26 +631,6 @@ export default function DashboardProfile() {
           </div>
         </div>
       )}
-
-      {/* Logo Section */}
-      <div className="profile-logo-section">
-        <div className="profile-logo-wrapper">
-          <div className="profile-logo-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-              />
-            </svg>
-          </div>
-          <h1 className="profile-logo-text">Réseau Social</h1>
-        </div>
-        <p className="profile-logo-subtitle">
-          Plateforme de réseau social moderne
-        </p>
-      </div>
 
       {/* Profile Header */}
       <div className="profile-header">
@@ -686,10 +748,10 @@ export default function DashboardProfile() {
                       d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
                   </svg>
-                  {new Date(user.birthDate).toLocaleDateString('fr-FR', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
+                  {new Date(user.birthDate).toLocaleDateString("fr-FR", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
                   })}
                 </div>
               )}
@@ -742,13 +804,13 @@ export default function DashboardProfile() {
             </div>
             <div className="profile-stat">
               <div className="profile-stat-number">
-                {user.followersCount || 0}
+                {safeFollowersCount}
               </div>
               <div className="profile-stat-label">Abonnés</div>
             </div>
             <div className="profile-stat">
               <div className="profile-stat-number">
-                {user.followingCount || 0}
+                {safeFollowingCount}
               </div>
               <div className="profile-stat-label">Suivis</div>
             </div>
@@ -756,7 +818,23 @@ export default function DashboardProfile() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Mobile : menu déroulant */}
+      <div className="profile-tabs-select-wrapper">
+        <select
+          className="profile-tabs-select"
+          value={activeTab}
+          onChange={(e) => setActiveTab(e.target.value)}
+          aria-label="Choisir une section"
+        >
+          <option value="posts">Posts</option>
+          <option value="followers">Abonnés ({safeFollowersCount})</option>
+          <option value="following">Abonnements ({safeFollowingCount})</option>
+          <option value="requests">Demandes ({pendingRequests.length})</option>
+          <option value="sent">Envoyées ({sentRequests.length})</option>
+        </select>
+      </div>
+
+      {/* Desktop : onglets */}
       <div className="profile-tabs">
         <button
           className={`profile-tab ${activeTab === "posts" ? "active" : ""}`}
@@ -768,19 +846,25 @@ export default function DashboardProfile() {
           className={`profile-tab ${activeTab === "followers" ? "active" : ""}`}
           onClick={() => setActiveTab("followers")}
         >
-          Abonnés ({followers.length})
+          Abonnés ({safeFollowersCount})
         </button>
         <button
           className={`profile-tab ${activeTab === "following" ? "active" : ""}`}
           onClick={() => setActiveTab("following")}
         >
-          Abonnements ({following.length})
+          Abonnements ({safeFollowingCount})
         </button>
         <button
           className={`profile-tab ${activeTab === "requests" ? "active" : ""}`}
           onClick={() => setActiveTab("requests")}
         >
           Demandes ({pendingRequests.length})
+        </button>
+        <button
+          className={`profile-tab ${activeTab === "sent" ? "active" : ""}`}
+          onClick={() => setActiveTab("sent")}
+        >
+          Envoyées ({sentRequests.length})
         </button>
       </div>
 
@@ -800,21 +884,26 @@ export default function DashboardProfile() {
               const followerId = f._id || f.id;
               return (
                 <div key={followerId} className="follow-card">
-                  <img
-                    src={
-                      getImageUrl(f.profilePicture, "avatar", f.username) ||
-                      "/placeholder.svg"
-                    }
-                    className="follow-avatar"
-                    alt={f.username}
-                    onError={(e) =>
-                      (e.target.src = getImageUrl(null, "avatar", f.username))
-                    }
-                  />
-                  <div className="follow-info">
-                    <div className="follow-name">{f.name || f.username}</div>
-                    <div className="follow-username">@{f.username}</div>
-                  </div>
+                  <Link
+                    to={`/profile/${f.username}`}
+                    className="follow-user-link"
+                  >
+                    <img
+                      src={
+                        getImageUrl(f.profilePicture, "avatar", f.username) ||
+                        "/placeholder.svg"
+                      }
+                      className="follow-avatar"
+                      alt={f.username}
+                      onError={(e) =>
+                        (e.target.src = getImageUrl(null, "avatar", f.username))
+                      }
+                    />
+                    <div className="follow-info">
+                      <div className="follow-name">{f.name || f.username}</div>
+                      <div className="follow-username">@{f.username}</div>
+                    </div>
+                  </Link>
                   <button
                     className="remove-follower-btn"
                     onClick={() => handleRemoveFollower(followerId)}
@@ -841,21 +930,26 @@ export default function DashboardProfile() {
               const followingId = f._id || f.id;
               return (
                 <div key={followingId} className="follow-card">
-                  <img
-                    src={
-                      getImageUrl(f.profilePicture, "avatar", f.username) ||
-                      "/placeholder.svg"
-                    }
-                    className="follow-avatar"
-                    alt={f.username}
-                    onError={(e) =>
-                      (e.target.src = getImageUrl(null, "avatar", f.username))
-                    }
-                  />
-                  <div className="follow-info">
-                    <div className="follow-name">{f.name || f.username}</div>
-                    <div className="follow-username">@{f.username}</div>
-                  </div>
+                  <Link
+                    to={`/profile/${f.username}`}
+                    className="follow-user-link"
+                  >
+                    <img
+                      src={
+                        getImageUrl(f.profilePicture, "avatar", f.username) ||
+                        "/placeholder.svg"
+                      }
+                      className="follow-avatar"
+                      alt={f.username}
+                      onError={(e) =>
+                        (e.target.src = getImageUrl(null, "avatar", f.username))
+                      }
+                    />
+                    <div className="follow-info">
+                      <div className="follow-name">{f.name || f.username}</div>
+                      <div className="follow-username">@{f.username}</div>
+                    </div>
+                  </Link>
                   <button
                     className="unfollow-btn"
                     onClick={() => handleUnfollow(followingId)}
@@ -888,7 +982,7 @@ export default function DashboardProfile() {
                 />
               </svg>
               <h3>Aucun post pour le moment</h3>
-              <p>Commencez à partager vos idées avec la communauté</p>
+              <p>Commencez à partager vos idées sur Linker</p>
             </div>
           ) : (
             <>
@@ -898,9 +992,10 @@ export default function DashboardProfile() {
                   post={post}
                   onDelete={handleDeletePost}
                   onUpdate={handleUpdatePost}
+                  currentUser={user}
                 />
               ))}
-              
+
               {/* Pagination for posts */}
               {posts.length > 0 && (
                 <Pagination
@@ -934,26 +1029,31 @@ export default function DashboardProfile() {
 
                 return (
                   <div key={followerId} className="request-card">
-                    <img
-                      src={
-                        follower.profilePicture ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          follower.username || "/placeholder.svg"
-                        )}&size=50&background=6366f1&color=fff&bold=true`
-                      }
-                      alt={follower.username}
-                      className="request-avatar"
-                    />
-                    <div className="request-info">
-                      <h4>
-                        {follower.name || follower.username}
-                        {follower.isVerified && " ✓"}
-                      </h4>
-                      <p>@{follower.username}</p>
-                      {follower.bio && (
-                        <p className="request-bio">{follower.bio}</p>
-                      )}
-                    </div>
+                    <Link
+                      to={`/profile/${follower.username}`}
+                      className="request-user-link"
+                    >
+                      <img
+                        src={
+                          follower.profilePicture ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            follower.username || "/placeholder.svg",
+                          )}&size=50&background=4FD04C&color=fff&bold=true`
+                        }
+                        alt={follower.username}
+                        className="request-avatar"
+                      />
+                      <div className="request-info">
+                        <h4>
+                          {follower.name || follower.username}
+                          {follower.isVerified && " ✓"}
+                        </h4>
+                        <p>@{follower.username}</p>
+                        {follower.bio && (
+                          <p className="request-bio">{follower.bio}</p>
+                        )}
+                      </div>
+                    </Link>
                     <div className="request-actions">
                       <button
                         className="accept-btn"
@@ -966,6 +1066,74 @@ export default function DashboardProfile() {
                         onClick={() => handleRejectRequest(followerId)}
                       >
                         Refuser
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Sent Requests Section */}
+      {activeTab === "sent" && (
+        <div className="profile-sent-section">
+          {loadingSentRequests ? (
+            <div className="profile-loading">
+              Chargement des demandes envoyées...
+            </div>
+          ) : sentRequests.length === 0 ? (
+            <div className="profile-posts-empty">
+              <h3>Aucune demande envoyée</h3>
+              <p>Vos demandes d'abonnement apparaîtront ici</p>
+            </div>
+          ) : (
+            <div className="sent-requests-list">
+              {sentRequests.map((request) => {
+                const followingUser = request.following;
+                const followingId = followingUser._id || followingUser.id;
+
+                return (
+                  <div key={followingId} className="sent-request-card">
+                    <Link
+                      to={`/profile/${followingUser.username}`}
+                      className="sent-request-user-link"
+                    >
+                      <img
+                        src={
+                          followingUser.profilePicture ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            followingUser.username || "/placeholder.svg",
+                          )}&size=50&background=4FD04C&color=fff&bold=true`
+                        }
+                        alt={followingUser.username}
+                        className="sent-request-avatar"
+                      />
+                      <div className="sent-request-info">
+                        <h4>
+                          {followingUser.name || followingUser.username}
+                          {followingUser.isVerified && " ✓"}
+                        </h4>
+                        <p>@{followingUser.username}</p>
+                        {followingUser.bio && (
+                          <p className="sent-request-bio">
+                            {followingUser.bio}
+                          </p>
+                        )}
+                        {followingUser.isPrivate && (
+                          <span className="sent-request-status">
+                            En attente d'approbation
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                    <div className="sent-request-actions">
+                      <button
+                        className="cancel-request-btn"
+                        onClick={() => handleCancelRequest(followingId)}
+                      >
+                        Annuler
                       </button>
                     </div>
                   </div>

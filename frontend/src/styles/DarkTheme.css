@@ -20,11 +20,11 @@ body.dark .sidebar-link:hover {
 
 body.dark .sidebar-link.active {
   background: #1f1f23;
-  color: #8b5cf6;
+  color: var(--brand-primary);
 }
 
 body.dark .sidebar-new-post {
-  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+  background: var(--brand-gradient);
 }
 
 body.dark .sidebar-user-menu {
@@ -119,6 +119,10 @@ body.dark .dashboard-user-row {
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
 
+body.dark .dashboard-user-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
 body.dark .dashboard-user-name {
   color: #e5e7eb;
 }
@@ -138,8 +142,8 @@ body.dark .dashboard-follow-btn {
 }
 
 body.dark .dashboard-follow-btn.btn-follow {
-  background: #8b5cf6;
-  border-color: #8b5cf6;
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
   color: #ffffff;
 }
 
@@ -159,7 +163,7 @@ body.dark .dashboard-search-footer {
 }
 
 body.dark .dashboard-search-all {
-  color: #a78bfa;
+  color: var(--brand-accent);
 }
 
 body.dark .dashboard-search-empty {
@@ -324,11 +328,11 @@ body.dark .profile-tab {
 }
 
 body.dark .profile-tab:hover {
-  color: #a78bfa;
+  color: var(--brand-accent);
 }
 
 body.dark .profile-tab.active {
-  color: #a78bfa;
+  color: var(--brand-accent);
 }
 
 body.dark .profile-posts-empty {
@@ -367,12 +371,12 @@ body.dark .profile-edit-btn:hover {
 
 body.dark .profile-share-btn {
   background: #111115;
-  color: #a78bfa;
-  border-color: #a78bfa;
+  color: var(--brand-accent);
+  border-color: var(--brand-accent);
 }
 
 body.dark .profile-share-btn:hover {
-  background: rgba(167, 139, 250, 0.1);
+  background: rgba(79, 208, 76, 0.12);
 }
 
 body.dark .profile-modal {
@@ -400,7 +404,7 @@ body.dark .profile-edit-form textarea {
 
 body.dark .profile-edit-form input:focus,
 body.dark .profile-edit-form textarea:focus {
-  border-color: #a78bfa;
+  border-color: var(--brand-accent);
 }
 
 body.dark .cancel-btn {
@@ -413,11 +417,11 @@ body.dark .cancel-btn:hover {
 }
 
 body.dark .save-btn {
-  background: #a78bfa;
+  background: var(--brand-primary);
 }
 
 body.dark .save-btn:hover {
-  background: #9333ea;
+  background: var(--brand-primary-dark);
 }
 
 body.dark .requests-list {
@@ -442,7 +446,7 @@ body.dark .request-bio {
 }
 
 body.dark .accept-btn {
-  background: #6366f1;
+  background: var(--brand-primary);
 }
 
 body.dark .reject-btn {
@@ -561,7 +565,7 @@ body.dark .profile-meta-item svg {
 }
 
 body.dark .profile-meta-item a {
-  color: #a78bfa;
+  color: var(--brand-accent);
 }
 
 body.dark .profile-stats {
@@ -595,8 +599,8 @@ body.dark .profile-tab:hover {
 
 body.dark .profile-tab.active {
   color: #e5e7eb;
-  border-color: #a78bfa;
-  background: rgba(167, 139, 250, 0.1);
+  border-color: var(--brand-accent);
+  background: rgba(79, 208, 76, 0.12);
 }
 
 body.dark .profile-follow-list {
@@ -625,12 +629,15 @@ body.dark .follow-username {
 }
 
 body.dark .unfollow-btn {
-  background: #dc2626;
-  color: white;
+  background: rgba(79, 208, 76, 0.08);
+  color: var(--brand-primary);
+  border: 1px solid rgba(79, 208, 76, 0.4);
 }
 
 body.dark .unfollow-btn:hover {
-  background: #b91c1c;
+  background: rgba(79, 208, 76, 0.2);
+  color: #6ee7b7;
+  border-color: var(--brand-primary);
 }
 
 body.dark .profile-posts-section {
@@ -663,12 +670,12 @@ body.dark .posts-grid {
 }
 
 body.dark .follow-btn {
-  background: #6366f1;
+  background: var(--brand-primary);
   color: white;
 }
 
 body.dark .follow-btn:hover {
-  background: #4f46e5;
+  background: var(--brand-primary-dark);
 }
 
 body.dark .follow-btn.requested {
@@ -730,11 +737,11 @@ body.dark .profile-tab:hover {
 }
 
 body.dark .profile-tab.active {
-  color: #a78bfa;
+  color: var(--brand-accent);
 }
 
 body.dark .profile-tab.active::after {
-  background-color: #a78bfa;
+  background-color: var(--brand-accent);
 }
 
 body.dark .profile-follow-list {
@@ -754,23 +761,25 @@ body.dark .follow-username {
 }
 
 body.dark .follow-btn {
-  background: #111115;
-  color: #a78bfa;
-  border-color: #a78bfa;
+  background: var(--brand-primary);
+  color: white;
+  border-color: var(--brand-primary);
 }
 
 body.dark .follow-btn:hover {
-  background: #a78bfa;
+  background: var(--brand-primary-dark);
   color: white;
 }
 
 body.dark .follow-btn.following {
-  background: #a78bfa;
-  color: white;
+  background: rgba(79, 208, 76, 0.2);
+  color: var(--brand-primary);
+  border-color: var(--brand-primary);
 }
 
 body.dark .follow-btn.following:hover {
-  background: #9333ea;
+  background: rgba(79, 208, 76, 0.3);
+  color: var(--brand-primary);
 }
 
 body.dark .follow-btn.requested {
@@ -783,14 +792,15 @@ body.dark .follow-btn.requested:hover {
 }
 
 body.dark .unfollow-btn {
-  background: #111115;
-  color: #ef4444;
-  border-color: #ef4444;
+  background: rgba(79, 208, 76, 0.08);
+  color: var(--brand-primary);
+  border: 1px solid rgba(79, 208, 76, 0.4);
 }
 
 body.dark .unfollow-btn:hover {
-  background: #ef4444;
-  color: white;
+  background: rgba(79, 208, 76, 0.2);
+  color: #6ee7b7;
+  border-color: var(--brand-primary);
 }
 
 body.dark .profile-loading {

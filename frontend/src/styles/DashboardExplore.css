@@ -31,11 +31,11 @@
 }
 
 .explore-tabs button:hover {
-  color: #6366f1;
+  color: var(--brand-primary);
 }
 
 .explore-tabs button.active {
-  color: #6366f1;
+  color: var(--brand-primary);
 }
 
 .explore-tabs button.active::after {
@@ -45,7 +45,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #6366f1;
+  background-color: var(--brand-primary);
 }
 
 .search-bar {
@@ -64,7 +64,7 @@
 
 .search-bar button {
   padding: 10px 20px;
-  background-color: var(--primary-color, #6366f1);
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 8px;
@@ -117,7 +117,7 @@
 
 .btn-follow {
   padding: 8px 16px;
-  background: #6366f1;
+  background: var(--brand-primary);
   color: white;
   border: none;
   border-radius: 20px;
@@ -145,80 +145,96 @@
 
 /* Dashboard Search UI (Rechercher) */
 .dashboard-search-page {
-  max-width: 900px;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 20px 100px;
+}
+
+.dashboard-search-header {
+  margin-bottom: 20px;
 }
 
 .dashboard-search-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 14px 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.02em;
 }
 
 .dashboard-search-box {
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #111827;
+  border-radius: 16px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #111827);
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .dashboard-search-input-wrapper {
   position: relative;
-  padding: 14px 14px 10px 14px;
-  background: #ffffff;
+  padding: 18px 18px 14px;
+  background: var(--bg-primary, #ffffff);
 }
 
 .dashboard-search-icon {
   position: absolute;
-  left: 26px;
+  left: 32px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: #9ca3af;
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary, #9ca3af);
+  pointer-events: none;
 }
 
 .dashboard-search-input {
   width: 100%;
-  padding: 12px 14px 12px 44px;
-  border-radius: 9999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #111827;
+  padding: 14px 18px 14px 48px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg-secondary, #f9fafb);
+  color: var(--text-primary, #111827);
+  font-size: 1rem;
   outline: none;
+  transition: all 0.2s ease;
 }
 
 .dashboard-search-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-secondary, #9ca3af);
 }
 
 .dashboard-search-input:focus {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+  border-color: var(--brand-primary);
+  background: var(--bg-primary, #ffffff);
+  box-shadow: 0 0 0 3px rgba(79, 208, 76, 0.2);
 }
 
 .dashboard-search-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border-top: 1px solid #e5e7eb;
-  border-bottom: 1px solid #e5e7eb;
-  background: #ffffff;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg-primary, #ffffff);
 }
 
 .dashboard-search-tab {
   background: transparent;
   border: none;
-  padding: 12px;
+  padding: 14px 16px;
   font-weight: 700;
-  color: #6b7280;
+  font-size: 0.95rem;
+  color: var(--text-secondary, #6b7280);
   cursor: pointer;
   position: relative;
+  transition: color 0.2s;
+}
+
+.dashboard-search-tab:hover {
+  color: var(--text-primary, #111827);
 }
 
 .dashboard-search-tab.active {
-  color: #111827;
+  color: var(--brand-primary);
 }
 
 .dashboard-search-tab.active::after {
@@ -226,9 +242,10 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: #8b5cf6;
+  bottom: 0;
+  height: 3px;
+  background: var(--brand-gradient);
+  border-radius: 3px 3px 0 0;
 }
 
 .dashboard-search-message {
@@ -253,8 +270,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-color, #f3f4f6);
+  transition: background 0.15s;
+}
+
+.dashboard-user-row:hover {
+  background: var(--bg-secondary, #fafafa);
 }
 
 .dashboard-user-left {
@@ -316,8 +338,8 @@
 }
 
 .dashboard-follow-btn.btn-follow {
-  background: #8b5cf6;
-  border-color: #8b5cf6;
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
   color: #ffffff;
 }
 
@@ -337,22 +359,45 @@
 }
 
 .dashboard-search-empty {
-  padding: 18px 14px;
-  color: #6b7280;
+  padding: 32px 18px;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.dashboard-search-loading {
+  padding: 24px 18px;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
 }
 
 .dashboard-search-footer {
-  padding: 12px 14px;
-  border-top: 1px solid #e5e7eb;
-  background: #ffffff;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  background: var(--bg-primary, #ffffff);
 }
 
 .dashboard-search-all {
-  color: #8b5cf6;
+  display: block;
+  text-align: center;
+  color: var(--brand-primary);
   font-weight: 700;
   text-decoration: none;
+  padding: 8px 0;
+  transition: color 0.2s;
 }
 
 .dashboard-search-all:hover {
+  color: var(--brand-secondary);
   text-decoration: underline;
+}
+
+@media (max-width: 699px) {
+  .dashboard-search-page {
+    padding: 16px 12px 100px;
+  }
+  
+  .dashboard-search-header h1 {
+    font-size: 1.35rem;
+  }
 }

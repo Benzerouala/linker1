@@ -176,7 +176,7 @@ export default function DashboardExplore() {
           </svg>
           <input
             type="text"
-            placeholder="Rechercher des personnes..."
+            placeholder="Rechercher des personnes ou des posts..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="dashboard-search-input"
@@ -249,7 +249,7 @@ export default function DashboardExplore() {
         ) : (
           <div className="dashboard-search-results">
             {posts.map((post) => (
-              <PostCard key={post._id} post={post} />
+              <PostCard key={post._id} post={post} currentUser={user} />
             ))}
 
             {!loading && searchQuery.trim() && posts.length === 0 && (

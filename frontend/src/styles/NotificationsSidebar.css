@@ -1,0 +1,301 @@
+/* Sidebar de notifications à droite avec style login */
+.notifications-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.3s ease;
+}
+
+.notifications-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  max-width: 90vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.3s ease;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.notifications-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.05), rgba(5, 150, 105, 0.05));
+}
+
+.notifications-sidebar-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mark-all-read-btn {
+  background: none;
+  border: none;
+  color: var(--brand-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.mark-all-read-btn:hover {
+  background: rgba(79, 208, 76, 0.1);
+}
+
+.notifications-sidebar-close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.notifications-sidebar-close:hover {
+  background: rgba(107, 114, 128, 0.1);
+  color: #1f2937;
+}
+
+.notifications-sidebar-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.notifications-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.notifications-loading,
+.notifications-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.notifications-loading svg,
+.notifications-empty svg {
+  width: 48px;
+  height: 48px;
+  color: var(--brand-primary);
+  margin-bottom: 1rem;
+}
+
+.notifications-empty h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0.5rem 0;
+}
+
+.notifications-empty p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.loading-spinner-small {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(79, 208, 76, 0.1);
+  border-top: 3px solid var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.notifications-list-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notification-item-sidebar {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.notification-item-sidebar:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(79, 208, 76, 0.2);
+  transform: translateX(-2px);
+}
+
+.notification-item-sidebar.unread {
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.08), rgba(5, 150, 105, 0.08));
+  border-left: 4px solid var(--brand-primary);
+}
+
+.notification-avatar-sidebar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--brand-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-avatar-sidebar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.notification-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.notification-icon-sidebar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.1), rgba(5, 150, 105, 0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}
+
+.notification-icon-sidebar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.notification-content-sidebar {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-text-sidebar {
+  font-size: 0.875rem;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.notification-time-sidebar {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 8px;
+  height: 8px;
+  background: var(--brand-primary);
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Mode sombre */
+[data-theme="dark"] .notifications-sidebar {
+  background: rgba(31, 41, 55, 0.95);
+  border-left-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .notifications-sidebar-header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.1), rgba(5, 150, 105, 0.1));
+}
+
+[data-theme="dark"] .notification-item-sidebar {
+  background: rgba(31, 41, 55, 0.8);
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .notification-item-sidebar:hover {
+  background: rgba(31, 41, 55, 0.95);
+}
+
+[data-theme="dark"] .notification-item-sidebar.unread {
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.15), rgba(5, 150, 105, 0.15));
+}
+
+[data-theme="dark"] .notification-text-sidebar {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .notification-time-sidebar {
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .notifications-sidebar {
+    width: 100vw;
+    max-width: 100vw;
+  }
+}

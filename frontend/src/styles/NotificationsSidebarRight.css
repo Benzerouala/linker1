@@ -1,0 +1,434 @@
+/* Fond overlay (visible uniquement quand le panneau est ouvert sur petit écran) */
+.notifications-sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 199;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.notifications-sidebar-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
+.notifications-sidebar-right {
+  width: 300px;
+  min-width: 300px;
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border-color);
+  min-height: 0; /* pour que la sidebar s’adapte à la hauteur du layout */
+  overflow: hidden; /* seul .right-sidebar-content défile, pas tout l'aside */
+  position: sticky;
+  top: 70px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-self: stretch; /* prend toute la hauteur du dashboard-layout */
+}
+
+.notifications-sidebar-close {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 6px;
+}
+
+.notifications-sidebar-close:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.right-sidebar-header {
+  flex-shrink: 0;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 10;
+}
+
+.right-sidebar-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.notification-badge {
+  background: var(--brand-gradient);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.right-sidebar-content {
+  flex: 1;
+  min-height: 0; /* permet à la zone de rétrécir pour que le footer reste visible */
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.notifications-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.notification-category {
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-primary);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}
+
+.category-header {
+  width: 100%;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  justify-content: space-between;
+}
+
+.category-header:hover {
+  background: rgba(79, 208, 76, 0.08);
+}
+
+.category-title {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.category-count {
+  background: var(--brand-gradient);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+}
+
+.category-arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  transition: transform 0.3s ease;
+}
+
+.category-arrow.expanded {
+  transform: rotate(180deg);
+}
+
+.category-items {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+.sidebar-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sidebar-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  text-align: center;
+}
+
+.sidebar-empty p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-item-right {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-items: flex-start;
+}
+
+.notification-item-right:hover {
+  background: var(--bg-secondary);
+}
+
+.notification-item-right.unread {
+  background: rgba(79, 208, 76, 0.08);
+}
+
+.notification-icon-right {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 208, 76, 0.12);
+  border-radius: 10px;
+  height: 32px;
+}
+
+.notification-content-right {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-user {
+  margin: 0 0 2px 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.notification-user-name {
+  margin: 0 0 4px 0;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.notification-action {
+  margin: 0 0 4px 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.notification-time-right {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: block;
+  margin-top: 2px;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.right-sidebar-footer {
+  flex-shrink: 0; /* footer toujours visible en bas, ne pas le pousser hors écran */
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-primary);
+}
+
+.see-all-btn {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--brand-gradient);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.see-all-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(79, 208, 76, 0.25);
+}
+
+.see-all-btn:active {
+  transform: translateY(0);
+}
+
+.see-all-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+body.dark .see-all-btn {
+  background: var(--brand-gradient);
+  color: white;
+  box-shadow: 0 6px 16px rgba(79, 208, 76, 0.35);
+}
+
+body.dark .see-all-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(79, 208, 76, 0.4);
+}
+
+body.dark .see-all-btn:disabled {
+  background: rgba(148, 163, 184, 0.16);
+  color: #94a3b8;
+  box-shadow: none;
+}
+
+/* Scrollbar personnalisée */
+.notifications-sidebar-right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.notifications-sidebar-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.notifications-sidebar-right::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.notifications-sidebar-right::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Dark mode */
+body.dark .notifications-sidebar-right {
+  background: #1a1a1e;
+  border-left-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .notification-category {
+  background: #17171b;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+body.dark .category-header {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+body.dark .category-title {
+  color: #e2e8f0;
+}
+
+body.dark .notification-item-right.unread {
+  background: rgba(79, 208, 76, 0.15);
+}
+
+body.dark .notification-user-name {
+  color: #e2e8f0;
+}
+
+body.dark .notification-icon-right {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.notification-category.empty {
+  opacity: 0.6;
+}
+
+.category-header:disabled {
+  cursor: default;
+}
+
+body.dark .right-sidebar-header {
+  background: #1a1a1e;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .right-sidebar-footer {
+  background: #1a1a1e;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .notification-item-right {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+body.dark .notification-item-right:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark .notification-item-right.unread {
+  background: rgba(79, 208, 76, 0.1);
+}
+
+/* Tablette / petit écran : sidebar en panneau coulissant */
+@media (max-width: 1200px) {
+  .notifications-sidebar-backdrop.open {
+    display: block;
+  }
+
+  .notifications-sidebar-right {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 320px;
+    max-width: 90vw;
+    z-index: 200;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    border-left: 1px solid var(--border-color);
+  }
+
+  .notifications-sidebar-right.open {
+    transform: translateX(0);
+  }
+
+  .notifications-sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .right-sidebar-header {
+    padding: 12px 16px;
+  }
+}

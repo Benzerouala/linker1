@@ -81,15 +81,15 @@
 }
 
 .pagination-number.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--brand-gradient);
   color: white;
-  border-color: #3b82f6;
+  border-color: var(--brand-primary);
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(79, 208, 76, 0.3);
 }
 
 .pagination-number.active:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  background: var(--brand-gradient-strong);
   transform: translateY(-1px);
 }
 

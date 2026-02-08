@@ -70,7 +70,6 @@ class PasswordResetService {
 
       return {
         message: "Email de réinitialisation envoyé avec succès",
-        token: resetToken, // ⚠️ À retirer en production
       };
     } catch (error) {
       console.error("❌ Erreur dans forgotPassword:", error.message);

@@ -37,6 +37,7 @@ export default function Login() {
 
         localStorage.setItem("token", token);
         localStorage.setItem("userId", user._id);
+        window.dispatchEvent(new CustomEvent("auth-change"));
 
         navigate("/");
       }
@@ -112,9 +113,9 @@ export default function Login() {
                     <input type="checkbox" />
                     <span>Se souvenir de moi</span>
                   </label>
-                  <Link to="/forgot-password" className="forgot-link">
+                 {/* <Link to="/forgot-password" className="forgot-link">
                     Mot de passe oublié ?
-                  </Link>
+                  </Link>*/}
                 </div>
 
                 <button

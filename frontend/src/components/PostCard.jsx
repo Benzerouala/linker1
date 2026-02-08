@@ -1,402 +1,1080 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
-import { getImageUrl } from "../utils/imageHelper"
-import "../styles/PostCard.css"
-import "../styles/PostCardFollow.css"
+import { useState, useEffect, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getImageUrl } from "../utils/imageHelper";
+import { useToastContext } from "../contexts/ToastContext";
+import ConfirmModal from "./ConfirmModal";
+import EditPostModal from "./EditPostModal";
+import NestedReply from "./NestedReply";
+import LikesModal from "./LikesModal";
+import "../styles/PostCard.css";
 
-const PostCard = ({ post, onDelete, onUpdate }) => {
-  const [isLiked, setIsLiked] = useState(post.isLiked || false)
-  const [likesCount, setLikesCount] = useState(post.likesCount || 0)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editContent, setEditContent] = useState(post.content)
-  const [editMediaFile, setEditMediaFile] = useState(null)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [showReplies, setShowReplies] = useState(false)
-  const [replies, setReplies] = useState([])
-  const [newReply, setNewReply] = useState("")
-  const [loadingReplies, setLoadingReplies] = useState(false)
-  const [replyLoading, setReplyLoading] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isFollowing, setIsFollowing] = useState(post.author?.isFollowing || false)
-  const [followLoading, setFollowLoading] = useState(false)
+const PostCard = ({
+  post,
+  onDelete,
+  onUpdate,
+  autoOpenReplies = false,
+  focusReplyId = null,
+  showFollowButton = true,
+  currentUser: currentUserProp = null,
+}) => {
+  const { success, error: showError } = useToastContext();
+  const [isLiked, setIsLiked] = useState(post.isLiked || false);
+  const [likesCount, setLikesCount] = useState(post.likesCount || 0);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+  const [replies, setReplies] = useState([]);
+  const [newReply, setNewReply] = useState("");
+  const [loadingReplies, setLoadingReplies] = useState(false);
+  const [replyLoading, setReplyLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(
+    post.repostedFrom?.author?.isFollowing ??
+      post.author?.isFollowing ??
+      false,
+  );
+  const [followLoading, setFollowLoading] = useState(false);
+  const [isReposted, setIsReposted] = useState(post.isReposted || false);
+  const [repostsCount, setRepostsCount] = useState(post.repostsCount || 0);
+  const [repostLoading, setRepostLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDeleteReplyModal, setShowDeleteReplyModal] = useState(false);
+  const [replyToDelete, setReplyToDelete] = useState(null);
+  const [isDeletingReply, setIsDeletingReply] = useState(false);
+  const [replyLikes, setReplyLikes] = useState({});
+  const [expandedReplyId, setExpandedReplyId] = useState(null);
+  const [nestedReplyText, setNestedReplyText] = useState({});
+  const [nestedReplyLoading, setNestedReplyLoading] = useState({});
+  const [repliesVersion, setRepliesVersion] = useState(0);
+  const [autoExpandReplyIds, setAutoExpandReplyIds] = useState(new Set());
+  const [showPostLikesModal, setShowPostLikesModal] = useState(false);
+  const [postLikesLoading, setPostLikesLoading] = useState(false);
+  const [postLikesUsers, setPostLikesUsers] = useState([]);
+  const replyScrollRef = useRef(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginModalMessage, setLoginModalMessage] = useState("");
+  const [currentUserFromApi, setCurrentUserFromApi] = useState(null);
+  const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const effectiveCurrentUser = currentUserProp || currentUserFromApi;
 
-  // Debug: Vérifier l'initialisation
-  console.log("PostCard initialized:", {
-    postId: post._id,
-    initialIsLiked: post.isLiked,
-    initialLikesCount: post.likesCount,
-    currentIsLiked: isLiked,
-    currentLikesCount: likesCount
-  });
-
-  // Mettre à jour l'état quand les props changent
-  useEffect(() => {
-    console.log("Post props updated:", {
-      postId: post._id,
-      newIsLiked: post.isLiked,
-      newLikesCount: post.likesCount
-    });
-
-    // Forcer la mise à jour de l'état local avec les nouvelles props
-    setIsLiked(post.isLiked || false)
-    setLikesCount(post.likesCount || 0)
-  }, [post.isLiked, post.likesCount, post._id])
-
-  // Effet pour synchroniser l'état local quand le post est mis à jour par onUpdate
-  useEffect(() => {
-    // Si les props du post changent (par exemple après un like), mettre à jour l'état local
-    if (post.isLiked !== undefined && post.likesCount !== undefined) {
-      setIsLiked(post.isLiked)
-      setLikesCount(post.likesCount)
+  const ensureLoggedIn = (message) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setLoginModalMessage(message);
+      setShowLoginModal(true);
+      return false;
     }
-  }, [post.isLiked, post.likesCount])
+    return true;
+  };
 
-  // Récupérer l'ID utilisateur depuis localStorage directement
-  const currentUserId = localStorage.getItem("userId")
-  const isAuthor = currentUserId === post.author?._id?.toString()
+  useEffect(() => {
+    setIsLiked(post.isLiked || false);
+    setLikesCount(post.likesCount || 0);
+    setIsReposted(post.isReposted || false);
+    setRepostsCount(post.repostsCount || 0);
+  }, [
+    post.isLiked,
+    post.likesCount,
+    post.isReposted,
+    post.repostsCount,
+    post._id,
+  ]);
 
-  // Créer un avatar par défaut avec les initiales ou utiliser placeholder
-  const getCurrentUserAvatar = () => {
-    // Utiliser un avatar par défaut plus élégant
-    // On pourrait créer un avatar avec initiales plus tard si besoin
-    return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%233B82F6'/%3E%3Ctext x='20' y='20' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='14' font-weight='bold'%3EYOU%3C/text%3E%3C/svg%3E"
-  }
+  useEffect(() => {
+    if (showReplies) {
+      setRepliesVersion((prev) => prev + 1);
+    }
+  }, [showReplies]);
 
-  /* ================= UTILS ================= */
+  useEffect(() => {
+    setIsFollowing(
+      post.repostedFrom?.author?.isFollowing ??
+        post.author?.isFollowing ??
+        false,
+    );
+  }, [post._id, post.repostedFrom?.author?.isFollowing, post.author?.isFollowing]);
+
+  const autoOpenHandledRef = useRef(null);
+
+  useEffect(() => {
+    if (!autoOpenReplies) return;
+    const autoOpenKey = focusReplyId || post._id;
+    if (autoOpenHandledRef.current === autoOpenKey) return;
+    setShowReplies(true);
+    autoOpenHandledRef.current = autoOpenKey;
+  }, [autoOpenReplies, focusReplyId, post._id]);
+
+  const currentUserId = localStorage.getItem("userId");
+  const author = post.author || {};
+  const originalPost = post.repostedFrom || null;
+  const isRepost = !!post.repostedFrom;
+  const displayAuthor =
+    isRepost && originalPost?.author ? originalPost.author : author;
+  const isAuthor = currentUserId === displayAuthor._id?.toString();
+  const isRepostOwner = isRepost && currentUserId === author._id?.toString();
+
+  // Fonction pour vérifier si une réponse est la nôtre
+  const isMyReply = (replyAuthorId) => {
+    return currentUserId && replyAuthorId?.toString() === currentUserId;
+  };
+
+  useEffect(() => {
+    if (currentUserProp) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.json())
+      .then((data) => { if (data.success) setCurrentUserFromApi(data.data); })
+      .catch(() => {});
+  }, [API_URL, currentUserProp]);
 
   const formatDate = (dateString) => {
-    const diff = Math.floor((Date.now() - new Date(dateString)) / 1000)
-    if (diff < 60) return `${diff}s`
-    if (diff < 3600) return `${Math.floor(diff / 60)}m`
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h`
-    if (diff < 604800) return `${Math.floor(diff / 86400)}j`
-    return new Date(dateString).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
-  }
+    const diff = Math.floor((Date.now() - new Date(dateString)) / 1000);
+    if (diff < 60) return `${diff}s`;
+    if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)}j`;
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short",
+    });
+  };
+
+  const findReplyPath = (replyList, targetId, path = []) => {
+    for (const reply of replyList) {
+      if (reply._id === targetId) {
+        return [...path, reply._id];
+      }
+
+      if (reply.children && reply.children.length > 0) {
+        const childPath = findReplyPath(reply.children, targetId, [
+          ...path,
+          reply._id,
+        ]);
+        if (childPath) {
+          return childPath;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const updateRepliesTree = (replyList, replyId, updater) => {
+    return replyList.map((reply) => {
+      if (reply._id === replyId) {
+        return updater(reply);
+      }
+
+      if (reply.children && reply.children.length > 0) {
+        return {
+          ...reply,
+          children: updateRepliesTree(reply.children, replyId, updater),
+        };
+      }
+
+      return reply;
+    });
+  };
+
+  const removeReplyFromTree = (replyList, targetId) => {
+    let removed = false;
+    const filteredReplies = replyList
+      .filter((reply) => {
+        if (reply._id === targetId) {
+          removed = true;
+          return false;
+        }
+        return true;
+      })
+      .map((reply) => {
+        if (reply.children && reply.children.length > 0) {
+          const result = removeReplyFromTree(reply.children, targetId);
+          if (result.removed) {
+            removed = true;
+            return { ...reply, children: result.replies };
+          }
+        }
+        return reply;
+      });
+
+    return { replies: filteredReplies, removed };
+  };
+
+  const collectReplyIds = (replyNode) => {
+    if (!replyNode) return [];
+    const ids = [replyNode._id];
+    if (Array.isArray(replyNode.children)) {
+      replyNode.children.forEach((child) => {
+        ids.push(...collectReplyIds(child));
+      });
+    }
+    return ids;
+  };
+
+  const insertNestedReply = (replyList, parentId, newReply) => {
+    let inserted = false;
+
+    const updatedReplies = replyList.map((reply) => {
+      if (reply._id === parentId) {
+        inserted = true;
+        const children = Array.isArray(reply.children) ? reply.children : [];
+        return {
+          ...reply,
+          children: [newReply, ...children],
+        };
+      }
+
+      if (reply.children && reply.children.length > 0) {
+        const childResult = insertNestedReply(reply.children, parentId, newReply);
+        if (childResult.inserted) {
+          inserted = true;
+          return {
+            ...reply,
+            children: childResult.replies,
+          };
+        }
+      }
+
+      return reply;
+    });
+
+    return { replies: updatedReplies, inserted };
+  };
 
   const getMediaUrl = () => {
-    if (!post.media) return null
-    const path = typeof post.media === "string" ? post.media : post.media?.url
-    if (!path) return null
-
-    // Si c'est une URL externe (commence par http), la retourner directement
-    if (path.startsWith('http')) {
-      return path
-    }
-
-    // Si c'est un fichier local, construire l'URL
-    const BASE = API_URL.replace("/api", "")
-    return `${BASE}${path.startsWith("/") ? path : `/${path}`}`
-  }
+    const mediaSource =
+      isRepost && originalPost ? originalPost.media : post.media;
+    if (!mediaSource) return null;
+    const path =
+      typeof mediaSource === "string" ? mediaSource : mediaSource?.url;
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    const BASE = API_URL.replace("/api", "");
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return `${BASE}${normalizedPath}`;
+  };
 
   const getMediaType = () => {
-    const url = typeof post.media === "string" ? post.media : post.media?.url
-    if (!url) return null
-    if (url.match(/\.(mp4|webm|ogg)$/i)) return "video"
-    if (url.match(/youtube|youtu\.be|vimeo/i)) return "video"
-    return "image"
-  }
+    const mediaSource =
+      isRepost && originalPost ? originalPost.media : post.media;
+    const url =
+      typeof mediaSource === "string" ? mediaSource : mediaSource?.url;
+    if (!url) return null;
+    if (url.match(/\.(mp4|webm|ogg)$/i)) return "video";
+    if (url.match(/youtube|youtu\.be|vimeo/i)) return "video";
+    return "image";
+  };
 
   const isYouTubeVideo = () => {
-    const url = getMediaUrl()
-    return url && url.match(/youtube|youtu\.be/i)
-  }
+    const url = getMediaUrl();
+    return url && url.match(/youtube|youtu\.be/i);
+  };
 
   const getYouTubeEmbedUrl = () => {
-    const url = getMediaUrl()
-    if (!url) return null
-
-    // Extraire l'ID YouTube de différentes formats d'URL
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)
-    return match ? `https://www.youtube.com/embed/${match[1]}` : null
-  }
-
-  /* ================= ACTIONS ================= */
+    const url = getMediaUrl();
+    if (!url) return null;
+    const match = url.match(
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+    );
+    return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+  };
 
   const handleLikeClick = async () => {
-    const token = localStorage.getItem("token")
-    if (!token) return
+    if (!ensureLoggedIn("Veuillez vous connecter pour aimer")) {
+      return;
+    }
+    const token = localStorage.getItem("token");
 
-    console.log("Like clicked - Current state:", { isLiked, likesCount, postId: post._id }); // Debug
+    const postIdForAction =
+      isRepost && originalPost ? originalPost._id : post._id;
+    const currentIsLiked =
+      isRepost && originalPost ? originalPost.isLiked : isLiked;
+    const currentLikesCount =
+      isRepost && originalPost ? originalPost.likesCount : likesCount;
 
-    const endpoint = isLiked ? "unlike" : "like"
-    const res = await fetch(`${API_URL}/threads/${post._id}/${endpoint}`, {
-      method: isLiked ? "DELETE" : "POST",
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    const endpoint = currentIsLiked ? "unlike" : "like";
+    const res = await fetch(
+      `${API_URL}/threads/${postIdForAction}/${endpoint}`,
+      {
+        method: currentIsLiked ? "DELETE" : "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
 
-    const data = await res.json()
-    console.log("Like API response:", data); // Debug
+    const data = await res.json();
 
     if (data.success) {
-      const newIsLiked = !isLiked
-      const newLikesCount = data.data.likesCount || (isLiked ? likesCount - 1 : likesCount + 1)
+      const newIsLiked = !currentIsLiked;
+      const newLikesCount =
+        data.data.likesCount ||
+        (currentIsLiked ? currentLikesCount - 1 : currentLikesCount + 1);
 
-      console.log("Updating like state:", {
-        oldIsLiked: isLiked,
-        newIsLiked,
-        oldLikesCount: likesCount,
-        newLikesCount,
-        apiLikesCount: data.data.likesCount
-      }); // Debug
-
-      // Mettre à jour l'état local immédiatement
-      setIsLiked(newIsLiked)
-      setLikesCount(newLikesCount)
-
-      // Mettre à jour les données du post dans le composant parent
-      onUpdate?.(post._id, {
-        ...post,
-        isLiked: newIsLiked,
-        likesCount: newLikesCount
-      })
-    } else {
-      console.error("Like API failed:", data); // Debug
+      if (isRepost && originalPost) {
+        onUpdate?.(post._id, {
+          ...post,
+          repostedFrom: {
+            ...originalPost,
+            isLiked: newIsLiked,
+            likesCount: newLikesCount,
+          },
+        });
+      } else {
+        setIsLiked(newIsLiked);
+        setLikesCount(newLikesCount);
+        onUpdate?.(post._id, {
+          ...post,
+          isLiked: newIsLiked,
+          likesCount: newLikesCount,
+        });
+      }
     }
-  }
+  };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Voulez-vous vraiment supprimer ce post ?")) return
-    setIsDeleting(true)
+  const handleDelete = () => setShowDeleteModal(true);
 
+  const confirmDelete = async () => {
+    setShowDeleteModal(false);
+    setIsDeleting(true);
     try {
       const response = await fetch(`${API_URL}/threads/${post._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      })
-
-      const data = await response.json()
+      });
+      const data = await response.json();
       if (data.success) {
-        onDelete?.(post._id)
+        onDelete?.(post._id);
       } else {
-        alert(data.message || "Erreur lors de la suppression")
+        showError(data.message || "Erreur lors de la suppression");
       }
     } catch (error) {
-      console.error("Delete error:", error)
-      alert("Erreur de connexion au serveur")
+      console.error("Delete error:", error);
+      showError("Erreur de connexion au serveur");
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
-  const handleEdit = () => {
-    setIsEditing(true)
-    setEditContent(post.content)
-  }
+  const requestDeleteReply = (reply) => {
+    setReplyToDelete(reply);
+    setShowDeleteReplyModal(true);
+  };
 
+  const confirmDeleteReply = async () => {
+    if (!replyToDelete) return;
+    setShowDeleteReplyModal(false);
+    setIsDeletingReply(true);
+    try {
+      const response = await fetch(
+        `${API_URL}/replies/${replyToDelete._id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        },
+      );
+      const data = await response.json();
+      if (data.success) {
+        setReplies((prevReplies) => {
+          const result = removeReplyFromTree(prevReplies, replyToDelete._id);
+          return result.replies;
+        });
+
+        const idsToRemove = collectReplyIds(replyToDelete);
+        setReplyLikes((prev) => {
+          const next = { ...prev };
+          idsToRemove.forEach((id) => {
+            delete next[id];
+          });
+          return next;
+        });
+
+        if (!replyToDelete.parentReply) {
+          if (isRepost && originalPost) {
+            onUpdate?.(post._id, {
+              ...post,
+              repostedFrom: {
+                ...originalPost,
+                repliesCount: Math.max(0, (originalPost.repliesCount || 0) - 1),
+              },
+            });
+          } else {
+            onUpdate?.(post._id, {
+              ...post,
+              repliesCount: Math.max(0, (post.repliesCount || 0) - 1),
+            });
+          }
+        }
+
+        success("✓ Commentaire supprimé");
+      } else {
+        showError(data.message || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("Delete reply error:", error);
+      showError("Erreur de connexion au serveur");
+    } finally {
+      setIsDeletingReply(false);
+      setReplyToDelete(null);
+    }
+  };
+
+  const handleEdit = () => setShowEditModal(true);
+
+  // ✅ CHARGER LES RÉPONSES AU MONTAGE
   useEffect(() => {
     if (showReplies && post._id) {
-      fetchReplies()
+      fetchReplies();
     }
-  }, [showReplies, post._id])
+  }, [showReplies, post._id]);
 
   const fetchReplies = async () => {
-    setLoadingReplies(true)
+    setLoadingReplies(true);
     try {
-      const response = await fetch(`${API_URL}/replies/${post._id}`)
-      const data = await response.json()
-      if (data.success) {
-        setReplies(data.data)
+      const targetThreadId = post._id;
+      const response = await fetch(`${API_URL}/replies/${targetThreadId}`);
+      const data = await response.json();
+    if (data.success) {
+      const repliesArray = data.data.replies || data.data || [];
+      const topLevelReplies = Array.isArray(repliesArray)
+        ? repliesArray.filter((reply) => !reply.parentReply)
+        : [];
+      setReplies(topLevelReplies);
+
+        const token = localStorage.getItem("token");
+        const userId = localStorage.getItem("userId");
+
+        if (token && userId && Array.isArray(repliesArray)) {
+          const likesMap = {};
+          // ✅ Aplatir aussi les enfants
+          const flattenReplies = (replyList) => {
+            replyList.forEach((reply) => {
+              if (reply.likes && reply.likes.includes(userId)) {
+                likesMap[reply._id] = true;
+              }
+              if (reply.children && Array.isArray(reply.children)) {
+                flattenReplies(reply.children);
+              }
+            });
+          };
+          flattenReplies(repliesArray);
+          setReplyLikes(likesMap);
+        }
       }
     } catch (error) {
-      console.error("Error fetching replies:", error)
+      console.error("Error fetching replies:", error);
     } finally {
-      setLoadingReplies(false)
+      setLoadingReplies(false);
     }
-  }
+  };
 
-  const handleUpdate = async (e) => {
-    e.preventDefault()
-    if (!editContent.trim()) return
-
-    setIsUpdating(true)
-    try {
-      const formData = new FormData()
-      formData.append("content", editContent)
-      if (editMediaFile) {
-        formData.append("media", editMediaFile)
-      }
-
-      const response = await fetch(`${API_URL}/threads/${post._id}`, {
-        method: "PUT",
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        body: formData,
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        setIsEditing(false)
-        onUpdate?.(post._id, data.data)
-      } else {
-        alert(data.message || "Erreur lors de la modification")
-      }
-    } catch (error) {
-      console.error("Update error:", error)
-      alert("Erreur de connexion au serveur")
-    } finally {
-      setIsUpdating(false)
+  useEffect(() => {
+    if (!focusReplyId || !showReplies) {
+      setAutoExpandReplyIds(new Set());
+      return;
     }
-  }
+
+    const path = findReplyPath(replies, focusReplyId);
+    if (path) {
+      setAutoExpandReplyIds(new Set(path));
+    }
+  }, [focusReplyId, showReplies, replies]);
+
+  useEffect(() => {
+    if (!focusReplyId || !showReplies) return;
+    if (replyScrollRef.current === focusReplyId) return;
+
+    const target = document.getElementById(`reply-${focusReplyId}`);
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      replyScrollRef.current = focusReplyId;
+    }
+  }, [focusReplyId, showReplies, replies, autoExpandReplyIds]);
+
+  const handleUpdatePost = (_postId, updatedData) => {
+    onUpdate?.(_postId, updatedData);
+    setShowEditModal(false);
+  };
 
   const handleReplySubmit = async (e) => {
-    e.preventDefault()
-    const token = localStorage.getItem("token")
-    if (!token || !newReply.trim()) return
+    e.preventDefault();
+    if (!ensureLoggedIn("Veuillez vous connecter pour commenter")) {
+      return;
+    }
+    const token = localStorage.getItem("token");
+
+    if (!newReply || !newReply.trim()) {
+      showError("Le contenu est requis");
+      return;
+    }
 
     try {
-      setReplyLoading(true)
-      const response = await fetch(`${API_URL}/replies/${post._id}`, {
+      setReplyLoading(true);
+      const targetThreadId = post._id;
+      const response = await fetch(`${API_URL}/replies/${targetThreadId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: newReply }),
-      })
+        body: JSON.stringify({ content: newReply.trim() }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
       if (data.success) {
-        setReplies([data.data, ...replies])
-        setNewReply("")
-        onUpdate?.(post._id, { ...post, repliesCount: (post.repliesCount || 0) + 1 })
-      }
-    } catch (error) {
-      console.error("Reply error:", error)
-    } finally {
-      setReplyLoading(false)
-    }
-  }
+        setReplies((prevReplies) => [data.data, ...prevReplies]);
+        setNewReply("");
+        success("✓ Réponse envoyée");
 
-  const handleFollow = async () => {
-    if (!currentUserId || isAuthor) return
-
-    try {
-      setFollowLoading(true)
-      const token = localStorage.getItem("token")
-
-      const endpoint = isFollowing ? "unfollow" : "follow"
-      const method = isFollowing ? "DELETE" : "POST"
-
-      const response = await fetch(`${API_URL}/follows/${post.author._id}/${endpoint}`, {
-        method: method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.success) {
-        const newIsFollowing = !isFollowing
-        setIsFollowing(newIsFollowing)
-
-        let message = ""
-        if (newIsFollowing) {
-          message = post.author.isPrivate
-            ? "Demande d'abonnement envoyée !"
-            : "Vous suivez maintenant cet utilisateur !"
-        } else {
-          message = "Vous ne suivez plus cet utilisateur."
-        }
-
-        // Mettre à jour le post pour refléter le changement
         onUpdate?.(post._id, {
           ...post,
-          author: {
-            ...post.author,
-            isFollowing: newIsFollowing
-          }
-        })
-
-        // alert(message) // Optionnel : on peut retirer l'alerte pour une UX plus fluide
+          repliesCount: (post.repliesCount || 0) + 1,
+        });
       } else {
-        alert(data.message || "Erreur lors de l'action")
+        showError(data.message || "Erreur lors de la création de la réponse");
+      }
+    } catch (error) {
+      console.error("Reply error:", error);
+      showError("Erreur de connexion au serveur");
+    } finally {
+      setReplyLoading(false);
+    }
+  };
+
+  const handleRepost = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    if (currentUserId && displayAuthor._id === currentUserId) {
+      showError("Tu ne peux pas reposter tes propres posts");
+      return;
+    }
+
+    try {
+      setRepostLoading(true);
+      const method = isReposted ? "DELETE" : "POST";
+      const postIdToRepost =
+        isRepost && originalPost ? originalPost._id : post._id;
+
+      const response = await fetch(
+        `${API_URL}/threads/${postIdToRepost}/repost`,
+        {
+          method,
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        const newIsReposted = !isReposted;
+        const newRepostsCount = isReposted
+          ? repostsCount - 1
+          : repostsCount + 1;
+
+        setIsReposted(newIsReposted);
+        setRepostsCount(newRepostsCount);
+
+        success(newIsReposted ? "✓ Thread reposté" : "✓ Repost annulé");
+
+        // Mise à jour du post actuel
+        if (isRepost && originalPost) {
+          onUpdate?.(post._id, {
+            ...post,
+            isReposted: newIsReposted,
+            repostedFrom: {
+              ...originalPost,
+              repostsCount: newRepostsCount,
+            },
+          });
+        } else {
+          onUpdate?.(post._id, {
+            ...post,
+            isReposted: newIsReposted,
+            repostsCount: newRepostsCount,
+          });
+        }
+
+        window.location.reload();
+      } else {
+        const alreadyReposted =
+          data?.message?.includes("déjà") || data?.message?.includes("Déjà");
+        if (alreadyReposted) {
+          success("✓ Déjà reposté");
+          return;
+        }
+        showError(data.message || "Erreur lors du repost");
+      }
+    } catch (error) {
+      console.error("Repost error:", error);
+      showError("Erreur de connexion au serveur");
+    } finally {
+      setRepostLoading(false);
+    }
+  };
+  const handleFollow = async () => {
+    if (!currentUserId || isAuthor) return;
+
+    try {
+      setFollowLoading(true);
+      const token = localStorage.getItem("token");
+      const endpoint = isFollowing ? "unfollow" : "follow";
+      const method = isFollowing ? "DELETE" : "POST";
+
+      const response = await fetch(
+        `${API_URL}/follows/${displayAuthor._id}/${endpoint}`,
+        {
+          method: method,
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      const data = await response.json();
+      const alreadyFollowing =
+        data?.message?.includes("déjà") || data?.message?.includes("Déjà");
+
+      if ((response.ok && data.success) || alreadyFollowing) {
+        const newIsFollowing = !isFollowing;
+        setIsFollowing(newIsFollowing);
+
+        const followUpdateMeta = {
+          _followUpdate: {
+            authorId: displayAuthor._id?.toString(),
+            isFollowing: newIsFollowing,
+          },
+        };
+
+        if (isRepost && originalPost) {
+          onUpdate?.(post._id, {
+            ...post,
+            repostedFrom: {
+              ...originalPost,
+              author: {
+                ...originalPost.author,
+                isFollowing: newIsFollowing,
+              },
+            },
+            ...followUpdateMeta,
+          });
+        } else {
+          onUpdate?.(post._id, {
+            ...post,
+            author: {
+              ...post.author,
+              isFollowing: newIsFollowing,
+            },
+            ...followUpdateMeta,
+          });
+        }
+      } else {
+        showError(data.message || "Erreur lors de l'action");
       }
     } catch (err) {
-      console.error("Error following user:", err)
-      alert("Erreur de connexion")
+      console.error("Error following user:", err);
+      showError("Erreur de connexion");
     } finally {
-      setFollowLoading(false)
+      setFollowLoading(false);
     }
-  }
+  };
 
-  /* ================= RENDER ================= */
+  const handleReplyLike = async (replyId) => {
+    if (!ensureLoggedIn("Veuillez vous connecter pour aimer")) {
+      return;
+    }
+    const token = localStorage.getItem("token");
 
-  const author = post.author || {}
-  const mediaUrl = getMediaUrl()
-  const mediaType = getMediaType()
+    try {
+      const isCurrentlyLiked = replyLikes[replyId] || false;
+      const endpoint = isCurrentlyLiked ? "unlike" : "like";
+      const method = isCurrentlyLiked ? "DELETE" : "POST";
+      const url = `${API_URL}/replies/${replyId}/${endpoint}`;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const apiLikesCount =
+          typeof data?.data?.likesCount === "number"
+            ? data.data.likesCount
+            : typeof data?.likesCount === "number"
+              ? data.likesCount
+              : null;
+
+        setReplyLikes((prevLikes) => ({
+          ...prevLikes,
+          [replyId]: !isCurrentlyLiked,
+        }));
+
+        setReplies((prevReplies) =>
+          updateRepliesTree(prevReplies, replyId, (reply) => {
+            const currentLikesCount =
+              typeof reply.likesCount === "number"
+                ? reply.likesCount
+                : Array.isArray(reply.likes)
+                  ? reply.likes.length
+                  : 0;
+            const nextLikesCount =
+              typeof apiLikesCount === "number"
+                ? apiLikesCount
+                : currentLikesCount + (isCurrentlyLiked ? -1 : 1);
+
+            return {
+              ...reply,
+              likesCount: Math.max(0, nextLikesCount),
+            };
+          }),
+        );
+        success(isCurrentlyLiked ? "✓ Like retiré" : "✓ Réponse aimée");
+      } else {
+        showError(data.message || "Erreur lors du like");
+      }
+    } catch (error) {
+      console.error("Error liking reply:", error);
+      showError("Erreur de connexion au serveur");
+    }
+  };
+
+  const handleReplyRepost = async (replyId) => {
+    if (!ensureLoggedIn("Veuillez vous connecter pour reposter")) {
+      return;
+    }
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${API_URL}/replies/${replyId}/repost`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success) {
+        success("✓ Commentaire reposté");
+        window.location.reload();
+      } else {
+        showError(data.message || "Erreur lors du repost du commentaire");
+      }
+    } catch (error) {
+      console.error("Error reposting reply:", error);
+      showError("Erreur de connexion au serveur");
+    }
+  };
+
+  const fetchPostLikes = async () => {
+    const targetThreadId =
+      isRepost && originalPost ? originalPost._id : post._id;
+    try {
+      setPostLikesLoading(true);
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await fetch(
+        `${API_URL}/threads/${targetThreadId}/likes`,
+        { headers },
+      );
+      const data = await response.json();
+      if (data.success) {
+        setPostLikesUsers(data.data?.users || []);
+      } else {
+        setPostLikesUsers([]);
+      }
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+      setPostLikesUsers([]);
+    } finally {
+      setPostLikesLoading(false);
+    }
+  };
+
+  const handlePostLikesClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowPostLikesModal(true);
+    await fetchPostLikes();
+  };
+
+  const handleNestedReplySubmit = async (e, parentReplyId) => {
+    e.preventDefault();
+    const replyText = nestedReplyText[parentReplyId];
+    if (!ensureLoggedIn("Veuillez vous connecter pour commenter")) {
+      return;
+    }
+    const token = localStorage.getItem("token");
+
+    if (!replyText || !replyText.trim()) {
+      showError("Le contenu est requis");
+      return;
+    }
+
+    try {
+      setNestedReplyLoading((prevLoading) => ({
+        ...prevLoading,
+        [parentReplyId]: true,
+      }));
+
+      const targetThreadId = post._id;
+
+      const response = await fetch(`${API_URL}/replies/${targetThreadId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          content: replyText.trim(),
+          parentReplyId: parentReplyId,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setReplies((prevReplies) => {
+          const result = insertNestedReply(
+            prevReplies,
+            parentReplyId,
+            data.data,
+          );
+          return result.inserted ? result.replies : [data.data, ...prevReplies];
+        });
+
+        setNestedReplyText((prevText) => ({
+          ...prevText,
+          [parentReplyId]: "",
+        }));
+        setExpandedReplyId(null);
+        success("✓ Réponse envoyée");
+
+        if (isRepost && originalPost) {
+          onUpdate?.(post._id, {
+            ...post,
+            repostedFrom: {
+              ...originalPost,
+              repliesCount: (originalPost.repliesCount || 0) + 1,
+            },
+          });
+        } else {
+          onUpdate?.(post._id, {
+            ...post,
+            repliesCount: (post.repliesCount || 0) + 1,
+          });
+        }
+      } else {
+        showError(data.message || "Erreur lors de la création de la réponse");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showError("Erreur de connexion au serveur");
+    } finally {
+      setNestedReplyLoading((prevLoading) => ({
+        ...prevLoading,
+        [parentReplyId]: false,
+      }));
+    }
+  };
+
+  const mediaUrl = getMediaUrl();
+  const mediaType = getMediaType();
+  const displayLikesCount =
+    isRepost && originalPost ? originalPost.likesCount : likesCount;
+  const displayIsLiked =
+    isRepost && originalPost ? originalPost.isLiked : isLiked;
+  const displayRepliesCount =
+    isRepost && originalPost ? originalPost.repliesCount : post.repliesCount;
+  const displayRepostsCount =
+    isRepost && originalPost ? originalPost.repostsCount : repostsCount;
+  const displayContent =
+    isRepost && originalPost ? originalPost.content : post.content;
+  const repostLegacyMatch =
+    !isRepost &&
+    typeof displayContent === "string" &&
+    displayContent.match(/^Repost de @([A-Za-z0-9_]+)\s*:?\s*(.*)$/i);
+  const repostLegacyUsername = repostLegacyMatch?.[1];
+  const repostLegacyText = repostLegacyMatch?.[2] || "";
+
+  const renderContentWithMentions = (content) => {
+    if (!content || typeof content !== "string") return content;
+    const parts = content.split(/(@[A-Za-z0-9_]+)/g);
+    return parts.map((part, index) => {
+      if (!part) return null;
+      if (part.startsWith("@")) {
+        const username = part.slice(1);
+        return (
+          <Link
+            key={`mention-${username}-${index}`}
+            to={`/profile/${username}`}
+            className="mention-chip"
+          >
+            <img
+              src={
+                getImageUrl(null, "avatar", username) || "/placeholder.svg"
+              }
+              className="mention-avatar"
+              alt={username || "user"}
+              onError={(e) => {
+                e.target.src = getImageUrl(null, "avatar", username);
+              }}
+            />
+            <span className="mention-text">{username}</span>
+          </Link>
+        );
+      }
+      return <span key={`text-${index}`}>{part}</span>;
+    });
+  };
 
   return (
-    <div className="post-card">
-      <div className="post-header">
-        <Link to={`/profile/${author.username}`} className="post-author">
+    <div
+      id={`post-${post._id}`}
+      data-thread-id={post._id}
+      data-reposted-from-id={post.repostedFrom?._id}
+      className={`post-card ${isRepost ? "repost-card" : ""}`}
+    >
+      {isRepost && (
+        <div className="repost-indicator">
           <img
-            src={getImageUrl(author.profilePicture, "avatar", author.username) || "/placeholder.svg"}
-            className="post-avatar"
-            alt={author.username}
+            src={
+              getImageUrl(
+                author.profilePicture,
+                "avatar",
+                author.username,
+              ) || "/placeholder.svg"
+            }
+            className="repost-indicator-avatar"
+            alt={author.username || "user"}
+            onError={(e) => {
+              e.target.src = getImageUrl(null, "avatar", author.username);
+            }}
           />
-          <div>
-            <strong>{author.name}</strong>
-            <div className="post-author-username">@{author.username}</div>
-          </div>
-        </Link>
-
-        <div className="post-header-actions">
-          {/* Bouton S'abonner / Se désabonner */}
-          {currentUserId && !isAuthor && (
-            <button
-              onClick={handleFollow}
-              disabled={followLoading}
-              className={`follow-btn ${isFollowing ? 'following' : ''}`}
-            >
-              {followLoading ? "Chargement..." : (isFollowing ? "Se désabonner" : "S'abonner")}
-            </button>
-          )}
-
-          <span className="post-time">{formatDate(post.createdAt)}</span>
-        </div>
-      </div>
-
-      {isEditing ? (
-        <form onSubmit={handleUpdate} className="post-edit-form">
-          <textarea
-            value={editContent}
-            onChange={(e) => setEditContent(e.target.value)}
-            className="post-edit-textarea"
-            rows="3"
-            autoFocus
-          />
-          <div className="post-edit-media">
-            <label htmlFor={`edit-media-${post._id}`} className="edit-media-label">
-              Changer l'image/vidéo
-            </label>
-            <input
-              id={`edit-media-${post._id}`}
-              type="file"
-              accept="image/*,video/*"
-              onChange={(e) => setEditMediaFile(e.target.files[0])}
-              className="hidden"
+          <svg
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            className="repost-icon"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
-            {editMediaFile && <span className="file-name">{editMediaFile.name}</span>}
-          </div>
-          <div className="post-edit-actions">
-            <button type="button" onClick={() => setIsEditing(false)} className="cancel-btn">
-              Annuler
-            </button>
-            <button type="submit" disabled={isUpdating} className="save-btn">
-              {isUpdating ? "Enregistrement..." : "Enregistrer"}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <>
-          <div className="post-content">{post.content}</div>
+          </svg>
+          <span>{author.name || author.username} a republié</span>
+        </div>
+      )}
 
+      {!isRepost && (
+        <div className="post-header">
+          <Link
+            to={
+              isAuthor
+                ? "/dashboard/profile"
+                : `/profile/${displayAuthor.username}`
+            }
+            className="post-author"
+          >
+            <img
+              src={
+                getImageUrl(
+                  displayAuthor.profilePicture,
+                  "avatar",
+                  displayAuthor.username,
+                ) || "/placeholder.svg"
+              }
+              className="post-avatar"
+              alt={displayAuthor.username}
+            />
+            <div>
+              <strong>{displayAuthor.name || displayAuthor.username}</strong>
+              <div className="post-author-username">
+                @{displayAuthor.username}
+              </div>
+            </div>
+          </Link>
+
+          <div className="post-header-actions">
+            {currentUserId && !isAuthor && showFollowButton && (
+              <button
+                onClick={handleFollow}
+                disabled={followLoading}
+                className={`follow-btn ${isFollowing ? "following" : ""}`}
+              >
+                {followLoading
+                  ? "..."
+                  : isFollowing
+                    ? "Se désabonner"
+                    : "S'abonner"}
+              </button>
+            )}
+            <span className="post-time">{formatDate(post.createdAt)}</span>
+          </div>
+        </div>
+      )}
+
+      {isRepost && originalPost ? (
+        <div className="repost-content-card">
+          <div className="repost-content-header">
+            <Link
+              to={
+                isAuthor
+                  ? "/dashboard/profile"
+                  : `/profile/${originalPost.author?.username}`
+              }
+              className="repost-content-author-link"
+            >
+              <img
+                src={
+                  getImageUrl(
+                    originalPost.author?.profilePicture,
+                    "avatar",
+                    originalPost.author?.username,
+                  ) || "/placeholder.svg"
+                }
+                className="repost-content-avatar"
+                alt={originalPost.author?.username || "user"}
+                onError={(e) => {
+                  e.target.src = getImageUrl(
+                    null,
+                    "avatar",
+                    originalPost.author?.username,
+                  );
+                }}
+              />
+              <div className="repost-content-author">
+                <span className="repost-content-name">
+                  {originalPost.author?.name || originalPost.author?.username}
+                </span>
+              </div>
+            </Link>
+            <div className="repost-content-meta">
+              {currentUserId && !isAuthor && showFollowButton && (
+                <button
+                  onClick={handleFollow}
+                  disabled={followLoading}
+                  className={`follow-btn repost-follow-btn ${
+                    isFollowing ? "following" : ""
+                  }`}
+                >
+                  {followLoading
+                    ? "..."
+                    : isFollowing
+                      ? "Se désabonner"
+                      : "S'abonner"}
+                </button>
+              )}
+              <span className="post-time">
+                {formatDate(originalPost.createdAt)}
+              </span>
+            </div>
+          </div>
+            {renderContentWithMentions(originalPost.content || displayContent)}
+          
           {mediaUrl && (
-            <div className="post-media">
+            <div className="post-media repost-media">
               {isYouTubeVideo() ? (
                 <div className="youtube-embed-container">
                   <iframe
@@ -409,40 +1087,202 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
                   />
                 </div>
               ) : mediaType === "image" ? (
-                <img src={mediaUrl || "/placeholder.svg"} className="post-media-img" alt="Post content" />
+                <img
+                  src={mediaUrl}
+                  className="post-media-img"
+                  alt="Post content"
+                />
               ) : (
                 <video src={mediaUrl} controls className="post-media-video" />
               )}
             </div>
           )}
+        </div>
+      ) : (
+        <>
+          {repostLegacyMatch ? (
+            <div className="post-content post-content-legacy-repost">
+              <div className="legacy-repost-header">
+                <span className="legacy-repost-label">Repost de</span>
+                {repostLegacyUsername ? (
+                  <Link
+                    to={`/profile/${repostLegacyUsername}`}
+                    className="legacy-repost-link"
+                  >
+                    <img
+                      src={
+                        getImageUrl(null, "avatar", repostLegacyUsername) ||
+                        "/placeholder.svg"
+                      }
+                      className="legacy-repost-avatar"
+                      alt={repostLegacyUsername || "user"}
+                    />
+                    <span className="legacy-repost-name">
+                      {repostLegacyUsername}
+                    </span>
+                  </Link>
+                ) : (
+                  <>
+                    <img
+                      src="/placeholder.svg"
+                      className="legacy-repost-avatar"
+                      alt="user"
+                    />
+                    <span className="legacy-repost-name">Utilisateur</span>
+                  </>
+                )}
+              </div>
+              {repostLegacyText && (
+                <div className="legacy-repost-text">
+                  {renderContentWithMentions(repostLegacyText)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="post-message">
+              {renderContentWithMentions(displayContent)}
+            </div>
+          )}
         </>
       )}
 
+      {mediaUrl && !isRepost && (
+        <div className="post-media">
+          {isYouTubeVideo() ? (
+            <div className="youtube-embed-container">
+              <iframe
+                src={getYouTubeEmbedUrl()}
+                className="youtube-embed"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title="YouTube video"
+              />
+            </div>
+          ) : mediaType === "image" ? (
+            <img src={mediaUrl} className="post-media-img" alt="Post content" />
+          ) : (
+            <video src={mediaUrl} controls className="post-media-video" />
+          )}
+        </div>
+      )}
+
       <div className="post-actions">
-        <button onClick={handleLikeClick} className={`action-btn ${isLiked ? 'liked' : ''}`}>
-          <svg className="action-icon" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        <button
+          onClick={handleLikeClick}
+          className={`action-btn ${displayIsLiked ? "liked" : ""}`}
+        >
+          <svg
+            className="action-icon"
+            fill={displayIsLiked ? "currentColor" : "none"}
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
           </svg>
-          <span className="action-count">{likesCount}</span>
-        </button>
-        {console.log(`Rendering post ${post._id} - isLiked: ${isLiked}, likesCount: ${likesCount}`)} {/* Debug */}
-        <button onClick={() => setShowReplies(!showReplies)} className={`action-btn ${showReplies ? 'active' : ''}`}>
-          <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          <span className="action-count">{post.repliesCount || 0}</span>
+          <span
+            className="action-count action-count-clickable"
+            onClick={handlePostLikesClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                handlePostLikesClick(e);
+              }
+            }}
+          >
+            {displayLikesCount || 0}
+          </span>
         </button>
 
-        {isAuthor && (
+        <button
+          onClick={() => {
+            if (!ensureLoggedIn("Veuillez vous connecter pour commenter")) {
+              return;
+            }
+            setExpandedReplyId(null);
+            setShowReplies((prev) => !prev);
+          }}
+          className={`action-btn ${showReplies ? "active" : ""}`}
+        >
+          <svg
+            className="action-icon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+            />
+          </svg>
+          <span className="action-count">{displayRepliesCount || 0}</span>
+        </button>
+
+        {!isAuthor && (
+          <button
+            onClick={handleRepost}
+            disabled={repostLoading}
+            className={`action-btn ${isReposted ? "reposted" : ""}`}
+          >
+            <svg
+              className="action-icon"
+              fill={isReposted ? "currentColor" : "none"}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span className="action-count">{displayRepostsCount || 0}</span>
+          </button>
+        )}
+
+        {isAuthor && !isRepost && (
           <div className="author-actions">
             <button onClick={handleEdit} className="action-btn edit-btn">
-              <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <svg
+                className="action-icon"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
               </svg>
             </button>
-            <button onClick={handleDelete} disabled={isDeleting} className="action-btn delete-btn">
-              <svg className="action-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="action-btn delete-btn"
+            >
+              <svg
+                className="action-icon"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>
@@ -454,10 +1294,20 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
           <div className="reply-form-wrapper">
             <div className="reply-avatar">
               <img
-                src={getCurrentUserAvatar()}
-                alt="Your avatar"
+                src={getImageUrl(
+                  effectiveCurrentUser?.profilePicture,
+                  "avatar",
+                  effectiveCurrentUser?.username || "User",
+                )}
+                alt="Votre avatar"
                 className="reply-avatar-img"
-                onError={(e) => (e.target.src = "/placeholder.svg")}
+                onError={(e) => {
+                  e.target.src = getImageUrl(
+                    null,
+                    "avatar",
+                    effectiveCurrentUser?.username || "User",
+                  );
+                }}
               />
             </div>
             <form onSubmit={handleReplySubmit} className="reply-form">
@@ -465,7 +1315,17 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
                 <input
                   type="text"
                   value={newReply}
-                  onChange={(e) => setNewReply(e.target.value)}
+                  onChange={(e) => {
+                    const token = localStorage.getItem("token");
+                    if (!token) return;
+                    setNewReply(e.target.value);
+                  }}
+                  onFocus={() => {
+                    ensureLoggedIn("Veuillez vous connecter pour commenter");
+                  }}
+                  onClick={() => {
+                    ensureLoggedIn("Veuillez vous connecter pour commenter");
+                  }}
                   placeholder="Écrire une réponse..."
                   className="reply-input"
                 />
@@ -475,12 +1335,29 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
                   className="reply-submit-btn"
                 >
                   {replyLoading ? (
-                    <svg className="loading-spinner" fill="none" viewBox="0 0 24 24">
-                      <circle className="spinner-path" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <svg
+                      className="loading-spinner"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="spinner-path"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
                     </svg>
                   ) : (
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                      />
                     </svg>
                   )}
                 </button>
@@ -499,31 +1376,37 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
               </div>
             ) : replies.length > 0 ? (
               replies.map((reply) => (
-                <div key={reply._id} className="reply-item">
-                  <img
-                    src={
-                      getImageUrl(reply.author?.profilePicture, "avatar", reply.author?.username) || "/placeholder.svg"
-                    }
-                    alt={reply.author?.username}
-                    className="reply-avatar-img"
-                    onError={(e) => (e.target.src = getImageUrl(null, "avatar", reply.author?.username))}
-                  />
-                  <div className="reply-content">
-                    <div className="reply-header">
-                      <span className="reply-author">
-                        {reply.author?.name || reply.author?.username}
-                        {reply.author?.isVerified && <span className="verified-badge">✓</span>}
-                      </span>
-                      <span className="reply-time">{formatDate(reply.createdAt)}</span>
-                    </div>
-                    <div className="reply-text">{reply.content}</div>
-                  </div>
-                </div>
+                <NestedReply
+                  key={`${reply._id}-${repliesVersion}`}
+                  reply={reply}
+                  onLike={handleReplyLike}
+                  onReply={handleNestedReplySubmit}
+                  currentUserId={currentUserId}
+                  expandedReplyId={expandedReplyId}
+                  setExpandedReplyId={setExpandedReplyId}
+                  nestedReplyText={nestedReplyText}
+                  setNestedReplyText={setNestedReplyText}
+                  nestedReplyLoading={nestedReplyLoading}
+                  isMyReply={isMyReply}
+                  formatDate={formatDate}
+                  replyLikes={replyLikes}
+                  collapseSignal={repliesVersion}
+                  autoExpandReplyIds={autoExpandReplyIds}
+                  apiUrl={API_URL}
+                  onRepost={handleReplyRepost}
+                  onDelete={requestDeleteReply}
+                  childReplies={reply.children || []}
+                />
               ))
             ) : (
               <div className="no-replies">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
                 </svg>
                 <p>Soyez le premier à répondre</p>
               </div>
@@ -531,8 +1414,61 @@ const PostCard = ({ post, onDelete, onUpdate }) => {
           </div>
         </div>
       )}
-    </div>
-  )
-}
 
-export default PostCard
+      <LikesModal
+        isOpen={showPostLikesModal}
+        title="J'aime"
+        users={postLikesUsers}
+        loading={postLikesLoading}
+        onClose={() => setShowPostLikesModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showLoginModal}
+        title="Connexion requise"
+        message={loginModalMessage || "Veuillez vous connecter pour continuer."}
+        confirmText="Se connecter"
+        cancelText="Annuler"
+        onConfirm={() => {
+          setShowLoginModal(false);
+          navigate("/login");
+        }}
+        onCancel={() => setShowLoginModal(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteReplyModal}
+        title="Supprimer le commentaire"
+        message="Êtes-vous sûr de vouloir supprimer ce commentaire ? Cette action est irréversible."
+        confirmText={isDeletingReply ? "Suppression..." : "Supprimer"}
+        cancelText="Annuler"
+        onConfirm={confirmDeleteReply}
+        onCancel={() => {
+          if (isDeletingReply) return;
+          setShowDeleteReplyModal(false);
+          setReplyToDelete(null);
+        }}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Supprimer le post"
+        message="Êtes-vous sûr de vouloir supprimer ce post ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isDangerous={true}
+        onConfirm={confirmDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
+
+      <EditPostModal
+        isOpen={showEditModal}
+        post={post}
+        onClose={() => setShowEditModal(false)}
+        onUpdate={handleUpdatePost}
+      />
+    </div>
+  );
+};
+
+export default PostCard;

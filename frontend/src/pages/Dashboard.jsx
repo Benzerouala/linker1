@@ -1,3 +1,4 @@
+//frontend/src/pages/Dashboard.jsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,6 +6,10 @@ import axios from "axios";
 import { useNavigate, Outlet } from "react-router-dom";
 import "../styles/Dashboard.css";
 import Sidebar from "../components/Sidebar";
+import TopNavbar from "../components/TopNavbar";
+import MobileBottomNavbar from "../components/MobileBottomNavbar";
+import NotificationsSidebarRight from "../components/NotificationsSidebarRight";
+import "../styles/NotificationManager.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -34,6 +39,7 @@ export default function Dashboard() {
       } catch (err) {
         setError("Erreur lors du chargement du profil");
         localStorage.removeItem("token");
+        window.dispatchEvent(new CustomEvent("auth-change"));
         navigate("/");
       } finally {
         setLoading(false);
@@ -64,10 +70,15 @@ export default function Dashboard() {
     <>
       <Sidebar />
       <div className="dashboard-wrapper">
-        <div className="dashboard-container">
-          <Outlet context={{ user, setUser }} />
+        <TopNavbar />
+        <div className="dashboard-layout">
+          <div className="dashboard-container">
+            <Outlet context={{ user, setUser }} />
+          </div>
+          <NotificationsSidebarRight />
         </div>
       </div>
+      <MobileBottomNavbar />
     </>
   );
 }

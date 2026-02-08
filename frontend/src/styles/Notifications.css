@@ -31,13 +31,13 @@ body.dark .notifications-container {
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--brand-gradient);
   color: white;
 }
 
 /* Dark Mode */
 body.dark .notifications-header {
-  background: linear-gradient(135deg, #4c1d95, #5b21b6) !important;
+  background: var(--brand-gradient) !important;
   border-bottom-color: rgba(255, 255, 255, 0.1) !important;
 }
 
@@ -126,6 +126,48 @@ body.dark .notifications-header {
   text-align: center;
 }
 
+/* Titre et filtres de la page Notifications */
+.page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: white;
+  flex-shrink: 0;
+}
+
+.notifications-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.filter-button {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: transparent;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.filter-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.filter-button.active {
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Menu déroulant mobile (caché sur desktop) */
+.notifications-filters-select-wrapper {
+  display: none;
+}
+
 .mark-all-read-btn {
   background-color: rgba(255, 255, 255, 0.2);
   color: white;
@@ -135,6 +177,7 @@ body.dark .notifications-header {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .mark-all-read-btn:hover {
@@ -154,7 +197,7 @@ body.dark .notifications-header {
   width: 40px;
   height: 40px;
   border: 4px solid #e5e7eb;
-  border-top: 4px solid #6366f1;
+  border-top: 4px solid var(--brand-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -220,8 +263,8 @@ body.dark .notifications-header {
 }
 
 .notification-item.unread {
-  background-color: #eff6ff;
-  border-left: 4px solid #3b82f6;
+  background-color: var(--brand-surface);
+  border-left: 4px solid var(--brand-primary);
 }
 
 .notification-item.unread::before {
@@ -231,7 +274,7 @@ body.dark .notifications-header {
   left: 1rem;
   width: 8px;
   height: 8px;
-  background-color: #3b82f6;
+  background-color: var(--brand-primary);
   border-radius: 50%;
 }
 
@@ -246,12 +289,12 @@ body.dark .notification-item:hover {
 }
 
 body.dark .notification-item.unread {
-  background-color: rgba(59, 130, 246, 0.15) !important;
-  border-left-color: #60a5fa !important;
+  background-color: rgba(79, 208, 76, 0.18) !important;
+  border-left-color: var(--brand-accent) !important;
 }
 
 body.dark .notification-item.unread::before {
-  background-color: #60a5fa !important;
+  background-color: var(--brand-accent) !important;
 }
 
 .notification-icon {
@@ -268,8 +311,8 @@ body.dark .notification-item.unread::before {
 }
 
 .notification-item.unread .notification-icon {
-  background-color: #dbeafe;
-  color: #3b82f6;
+  background-color: #d1fae5;
+  color: var(--brand-primary);
 }
 
 .notification-icon svg {
@@ -284,8 +327,8 @@ body.dark .notification-icon {
 }
 
 body.dark .notification-item.unread .notification-icon {
-  background-color: rgba(59, 130, 246, 0.16) !important;
-  color: #60a5fa !important;
+  background-color: rgba(79, 208, 76, 0.2) !important;
+  color: var(--brand-accent) !important;
 }
 
 .notification-content {
@@ -376,10 +419,12 @@ body.dark .notification-username {
   color: white !important;
 }
 
-/* Responsive Design */
+/* ========== MOBILE RESPONSIVE (< 768px) ========== */
 @media (max-width: 768px) {
   .notifications-page {
     padding: 0;
+    padding-bottom: 72px; /* Espace pour MobileBottomNavbar */
+    min-height: 100vh;
   }
 
   .notifications-container {
@@ -388,11 +433,64 @@ body.dark .notification-username {
   }
 
   .notifications-header {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.75rem;
     padding: 1rem;
   }
 
-  .notifications-title h1 {
+  .page-title {
     font-size: 1.25rem;
+  }
+
+  /* Mobile : menu déroulant, cacher les boutons de filtre */
+  .notifications-filters-select-wrapper {
+    display: block;
+  }
+
+  .notifications-filters-select {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.75rem 2.5rem 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.1rem;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+
+  .notifications-filters-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .notifications-filters-select option {
+    color: #1f2937;
+    background: white;
+  }
+
+  .notifications-filters {
+    display: none;
+  }
+
+  .mark-all-read-btn {
+    align-self: flex-start;
+  }
+
+  .notifications-list {
+    max-height: calc(100vh - 220px);
+    padding-bottom: 0.5rem;
   }
 
   .notification-item {
@@ -408,5 +506,62 @@ body.dark .notification-username {
   .reject-btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.7rem;
+  }
+
+  .notifications-loading,
+  .notifications-empty {
+    padding: 2.5rem 1rem;
+  }
+
+  .notifications-empty svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .notifications-empty h3 {
+    font-size: 1.1rem;
+  }
+
+  .notifications-empty p {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ========== PETITS ÉCRANS (< 480px) ========== */
+@media (max-width: 480px) {
+  .notifications-page {
+    padding-bottom: 68px;
+  }
+
+  .notifications-header {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 1.1rem;
+  }
+
+  .notifications-filters-select {
+    padding: 0.7rem 2.25rem 0.7rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .mark-all-read-btn {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.875rem;
+  }
+
+  .notifications-list {
+    max-height: calc(100vh - 200px);
+  }
+
+  .notification-item {
+    padding: 0.85rem 1rem;
+  }
+
+  .notifications-loading,
+  .notifications-empty {
+    padding: 2rem 0.75rem;
   }
 }

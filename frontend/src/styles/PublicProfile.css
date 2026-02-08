@@ -13,6 +13,15 @@
   min-height: 100vh;
 }
 
+.public-profile-page.no-sidebar {
+  flex-direction: column;
+}
+
+.public-profile.no-sidebar {
+  margin-left: 0;
+  max-width: 100%;
+}
+
 .public-profile-container {
   max-width: 800px;
   margin: 0 auto;
@@ -35,7 +44,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #6366f1;
+  border-top: 4px solid var(--brand-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -76,7 +85,7 @@
 .back-link {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background-color: #6366f1;
+  background-color: var(--brand-primary);
   color: white;
   text-decoration: none;
   border-radius: 0.5rem;
@@ -84,7 +93,7 @@
 }
 
 .back-link:hover {
-  background-color: #4f46e5;
+  background-color: var(--brand-primary-dark);
 }
 
 /* Private Profile */
@@ -171,7 +180,7 @@
 }
 
 .follow-request-btn {
-  background-color: #6366f1;
+  background-color: var(--brand-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -182,7 +191,7 @@
 }
 
 .follow-request-btn:hover:not(:disabled) {
-  background-color: #4f46e5;
+  background-color: var(--brand-primary-dark);
 }
 
 .follow-request-btn:disabled {
@@ -204,7 +213,7 @@
 
 .login-link {
   display: inline-block;
-  color: #6366f1;
+  color: var(--brand-primary);
   text-decoration: none;
   font-weight: 600;
 }
@@ -257,7 +266,7 @@
 .profile-cover-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--brand-gradient);
 }
 
 .profile-header-content {
@@ -373,12 +382,12 @@
 }
 
 .follow-btn {
-  background-color: #6366f1;
+  background-color: var(--brand-primary);
   color: white;
 }
 
 .follow-btn:hover:not(:disabled) {
-  background-color: #4f46e5;
+  background-color: var(--brand-primary-dark);
 }
 
 .unfollow-btn {
@@ -395,6 +404,23 @@
 .unfollow-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.follow-self-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: #eef2ff;
+  color: #4338ca;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+body.dark .follow-self-label {
+  background-color: rgba(79, 208, 76, 0.18);
+  color: #6ee7b7;
+  border: 1px solid rgba(79, 208, 76, 0.35);
 }
 
 .profile-bio {
@@ -475,7 +501,7 @@
 }
 
 .profile-meta-item a {
-  color: #6366f1;
+  color: var(--brand-primary);
   text-decoration: none;
 }
 
@@ -576,7 +602,7 @@
 }
 
 .profile-tab.active {
-  color: #6366f1;
+  color: var(--brand-primary);
 }
 
 .profile-tab.active::after {
@@ -586,7 +612,7 @@
   left: 0;
   right: 0;
   height: 2px;
-  background-color: #6366f1;
+  background-color: var(--brand-primary);
 }
 
 /* Follow Lists */
@@ -603,6 +629,34 @@
   gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid #f3f4f6;
+}
+
+.follow-card > button,
+.follow-card > .follow-self-label {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.profile-follow-list .follow-btn,
+.profile-follow-list .unfollow-btn {
+  width: auto;
+  min-width: 120px;
+  max-width: 200px;
+  white-space: nowrap;
+}
+
+.follow-user-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: inherit;
+  text-decoration: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.follow-user-link:hover .follow-name {
+  color: var(--brand-primary);
 }
 
 .follow-card:last-child {
@@ -643,23 +697,23 @@
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s;
-  border: 1px solid #6366f1;
+  border: 1px solid var(--brand-primary);
   background: white;
-  color: #6366f1;
+  color: var(--brand-primary);
 }
 
 .follow-btn:hover {
-  background: #6366f1;
+  background: var(--brand-primary);
   color: white;
 }
 
 .follow-btn.following {
-  background: #6366f1;
+  background: var(--brand-primary);
   color: white;
 }
 
 .follow-btn.following:hover {
-  background: #4f46e5;
+  background: var(--brand-primary-dark);
 }
 
 .follow-btn.requested {
@@ -715,10 +769,10 @@
     color: #d1d5db !important;
   }
   body.dark .profile-tab.active {
-    color: #6366f1 !important;
+    color: var(--brand-primary) !important;
   }
   body.dark .profile-tab.active::after {
-    background-color: #6366f1 !important;
+    background-color: var(--brand-primary) !important;
   }
  
   body.dark .profile-tabs > button{
@@ -728,20 +782,22 @@
     background-color: #111827 !important;
   }
   body.dark .follow-btn {
-    background: #6366f1 !important;
+    background: var(--brand-primary) !important;
     color: white !important;
-    border-color: #6366f1 !important;
+    border-color: var(--brand-primary) !important;
   }
   body.dark .follow-btn:hover {
-    background: #5558e3 !important;
+    background: var(--brand-primary-dark) !important;
   }
   body.dark .unfollow-btn {
-    background: #374151 !important;
-    color: #e5e7eb !important;
-    border-color: #374151 !important;
+    background: rgba(79, 208, 76, 0.08) !important;
+    color: var(--brand-primary) !important;
+    border: 1px solid rgba(79, 208, 76, 0.4) !important;
   }
   body.dark .unfollow-btn:hover {
-    background: #4b5563 !important;
+    background: rgba(79, 208, 76, 0.2) !important;
+    color: #6ee7b7 !important;
+    border-color: var(--brand-primary) !important;
   }
   body.dark .remove-follower-btn {
     background: #dc2626 !important;

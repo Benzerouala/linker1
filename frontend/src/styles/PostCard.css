@@ -1,28 +1,39 @@
-/* PostCard.css - Modern Design */
 
 .post-card {
   background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #f3f4f6;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e5e7eb;
   transition: all 0.2s ease;
-  margin-bottom: 60px !important;
-  margin-top: 20px !important;
-}
-.post-author{
-  display: flex;
+  margin-bottom: 15px !important;
+  margin-top: 25px !important;
 }
 
 .post-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
 }
 
+.post-card.repost-card {
+  background: #ffffff;
+}
+
+/* ============================================
+   POST HEADER
+   ============================================ */
 .post-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 2px;
+  margin-bottom: 12px;
+}
+
+.post-author {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
 }
 
 .post-avatar {
@@ -31,6 +42,7 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #f3f4f6;
+  flex-shrink: 0;
 }
 
 .post-author-info {
@@ -39,16 +51,49 @@
 
 .post-author-name {
   font-weight: 600;
-  color: #1f2937;
+  color: #111827;
   font-size: 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .post-author-username {
   color: #6b7280;
-  font-size: 15px;
+  font-size: 14px;
+}
+
+.post-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.follow-btn {
+  padding: 6px 14px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #1f2937;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.follow-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.follow-btn.following {
+  background: var(--brand-gradient);
+  color: white;
+  border-color: transparent;
+}
+
+.follow-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .post-time {
@@ -56,11 +101,117 @@
   font-size: 13px;
 }
 
+/* ============================================
+   POST CONTENT
+   ============================================ */
 .post-content {
   color: #1f2937;
   line-height: 1.6;
   margin-bottom: 16px;
   font-size: 15px;
+  word-wrap: break-word;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.post-message {
+  color: #1f2937;
+  line-height: 1.6;
+  margin-bottom: 16px;
+  font-size: 15px;
+  word-wrap: break-word;
+}
+
+.mention-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  margin: 0 2px;
+  border-radius: 999px;
+  background: rgba(79, 208, 76, 0.12);
+  color: var(--brand-primary);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  border: 1px solid rgba(79, 208, 76, 0.2);
+  vertical-align: middle;
+}
+
+.mention-chip:hover {
+  background: rgba(79, 208, 76, 0.18);
+}
+
+.mention-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(79, 208, 76, 0.2);
+}
+
+.mention-text {
+  line-height: 1;
+}
+
+.post-content-legacy-repost {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.legacy-repost-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.legacy-repost-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.legacy-repost-link:hover .legacy-repost-name {
+  color: var(--brand-primary);
+}
+
+.legacy-repost-label {
+  color: #6b7280;
+}
+
+.legacy-repost-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(79, 208, 76, 0.2);
+}
+
+.legacy-repost-name {
+  color: #111827;
+}
+
+.legacy-repost-text {
+  color: #1f2937;
+  font-size: 14px;
+}
+
+/* ============================================
+   POST MEDIA
+   ============================================ */
+.post-media {
+  margin: 16px 0;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .post-media-img {
@@ -68,79 +219,73 @@
   border-radius: 12px;
   object-fit: cover;
   max-height: 500px;
+  display: block;
 }
 
 .post-media-video {
   width: 100%;
   border-radius: 12px;
   max-height: 500px;
-} 
-
-.post-edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
+  display: block;
 }
 
-.post-edit-actions button {
-  padding: 8px 16px;
+.youtube-embed-container {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  margin: 12px 0;
+}
+
+.youtube-embed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.save-btn {
-  background: #3b82f6;
-  color: white;
-}
-
-.save-btn:hover {
-  background: #2563eb;
-}
-
-.cancel-btn {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-.cancel-btn:hover {
-  background: #e5e7eb;
-}
-
-/* Modern Action Buttons */
+/* ============================================
+   POST ACTIONS (Like, Reply, Repost)
+   ============================================ */
 .post-actions {
   display: flex;
-  gap: 20px;
-  padding: 16px 0 8px 0;
+  gap: 16px;
+  padding: 14px 0 6px 0;
   align-items: center;
   border-top: 1px solid #f3f4f6;
   margin-top: 12px;
+  justify-content: space-between;
 }
 
 .action-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 10px;
   background: transparent;
   border: none;
-  border-radius: 12px;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #6b7280;
   position: relative;
 }
 
 .action-btn:hover {
-  background-color: #f9fafb;
+  background-color: rgba(79, 208, 76, 0.08);
   color: #374151;
   transform: translateY(-1px);
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .action-btn.liked {
@@ -153,13 +298,13 @@
 }
 
 .action-btn.active {
-  color: #3b82f6;
-  background-color: #eff6ff;
+  color: var(--brand-primary);
+  background-color: rgba(79, 208, 76, 0.1);
 }
 
 .action-btn.active:hover {
-  background-color: #dbeafe;
-  color: #2563eb;
+  background-color: rgba(79, 208, 76, 0.16);
+  color: var(--brand-primary);
 }
 
 .action-icon {
@@ -176,15 +321,14 @@
   animation: like-bounce 0.3s ease;
 }
 
-@keyframes like-bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.3); }
-}
-
 .action-count {
   color: inherit;
   font-weight: 600;
   font-size: 14px;
+}
+
+.action-count-clickable {
+  cursor: pointer;
 }
 
 .author-actions {
@@ -203,7 +347,238 @@
   color: #dc2626;
 }
 
-/* Modern Reply Section */
+@keyframes like-bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  80%,
+  100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* ============================================
+   REPOST INDICATOR
+   ============================================ */
+.repost-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(79, 208, 76, 0.08);
+  color: #4b5563;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid rgba(79, 208, 76, 0.12);
+}
+
+.repost-indicator-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px rgba(79, 208, 76, 0.2);
+}
+
+.repost-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--brand-primary);
+}
+
+.repost-content-card {
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f9fafb;
+  border-left: 3px solid var(--brand-primary);
+  box-shadow: inset 0 0 0 1px #f3f4f6;
+}
+
+.repost-content-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.repost-content-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.repost-content-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f3f4f6;
+}
+
+.repost-content-author {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.repost-content-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.repost-content-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.repost-follow-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+.repost-content-username {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.repost-content-text {
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.repost-media {
+  margin-top: 10px;
+}
+
+body.dark .repost-content-card {
+  background: #151922;
+  border-left-color: var(--brand-primary);
+  box-shadow: inset 0 0 0 1px #2b2f3a;
+}
+
+body.dark .post-content {
+  color: #e5e7eb;
+  background: #151922;
+  border-color: #2b2f3a;
+}
+
+body.dark .post-message {
+  color: #e5e7eb;
+}
+
+body.dark .mention-chip {
+  background: rgba(79, 208, 76, 0.22);
+  color: #6ee7b7;
+  border-color: rgba(79, 208, 76, 0.35);
+}
+
+body.dark .mention-avatar {
+  border-color: #0f1116;
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35);
+}
+
+body.dark .legacy-repost-label {
+  color: #9ca3af;
+}
+
+body.dark .legacy-repost-name {
+  color: #f3f4f6;
+}
+
+body.dark .legacy-repost-link:hover .legacy-repost-name {
+  color: #6ee7b7;
+}
+
+body.dark .legacy-repost-text {
+  color: #e5e7eb;
+}
+
+body.dark .legacy-repost-avatar {
+  border-color: #0f1116;
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35);
+}
+
+body.dark .repost-content-text {
+  color: #e5e7eb;
+  background: #0f1116;
+  border-color: #2b2f3a;
+}
+
+body.dark .repost-indicator-avatar {
+  border-color: #0f1116;
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.35);
+}
+
+body.dark .repost-content-avatar {
+  border-color: #2b2f3a;
+}
+
+body.dark .repost-indicator {
+  background: rgba(79, 208, 76, 0.16);
+  border-color: rgba(79, 208, 76, 0.25);
+  color: #6ee7b7;
+}
+
+body.dark .repost-icon {
+  color: #a5b4fc;
+}
+
+body.dark .repost-content-name {
+  color: #f3f4f6;
+}
+
+body.dark .repost-content-username {
+  color: #9ca3af;
+}
+
+body.dark .repost-content-text {
+  color: #e5e7eb;
+}
+
+/* ============================================
+   REPLY FORM (Main Reply Input)
+   ============================================ */
 .post-replies-section {
   margin-top: 16px;
   padding-top: 16px;
@@ -245,9 +620,9 @@
 }
 
 .reply-input-wrapper:focus-within {
-  border-color: #3b82f6;
+  border-color: var(--brand-primary);
   background: white;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(79, 208, 76, 0.1);
 }
 
 .reply-input {
@@ -269,7 +644,7 @@
   height: 40px;
   border-radius: 50%;
   border: none;
-  background: #3b82f6;
+  background: var(--brand-primary);
   color: white;
   cursor: pointer;
   display: flex;
@@ -277,17 +652,17 @@
   justify-content: center;
   transition: all 0.2s ease;
   padding: 0;
+  flex-shrink: 0;
 }
 
 .reply-submit-btn:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--brand-primary-dark);
   transform: scale(1.05);
 }
 
 .reply-submit-btn:disabled {
   background: #d1d5db;
   cursor: not-allowed;
-  transform: none;
 }
 
 .reply-submit-btn svg {
@@ -299,66 +674,19 @@
   animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 .spinner-path {
-  stroke: #3b82f6;
+  stroke: var(--brand-primary);
   stroke-dasharray: 56;
   stroke-dashoffset: 28;
 }
 
-/* Replies List */
+/* ============================================
+   REPLIES LIST
+   ============================================ */
 .replies-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.reply-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px 0;
-}
-
-.reply-content {
-  flex: 1;
-}
-
-.reply-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.reply-author {
-  font-weight: 600;
-  color: #1f2937;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.verified-badge {
-  color: #3b82f6;
-  font-size: 12px;
-  font-weight: bold;
-}
-
-.reply-time {
-  color: #9ca3af;
-  font-size: 12px;
-}
-
-.reply-text {
-  color: #4b5563;
-  font-size: 14px;
-  line-height: 1.5;
-  margin-top: 2px;
+  gap: 0;
 }
 
 .replies-loading {
@@ -380,16 +708,12 @@
   animation: bounce 1.4s infinite ease-in-out both;
 }
 
-.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
 
-@keyframes bounce {
-  0%, 80%, 100% {
-    transform: scale(0);
-  }
-  40% {
-    transform: scale(1);
-  }
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
 }
 
 .no-replies {
@@ -414,30 +738,224 @@
   margin: 0;
 }
 
-/* YouTube embed styles */
-.youtube-embed-container {
+/* ============================================
+   REPLY ITEM (Individual Reply)
+   ============================================ */
+.reply-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
   position: relative;
-  width: 100%;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  height: 0;
-  overflow: hidden;
+}
+
+.reply-item.hoverable:hover {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 12px 8px;
+}
+
+.reply-item.nested {
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: none;
+}
+
+.reply-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.reply-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.reply-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.reply-delete-btn {
+  color: #d14343;
+}
+
+.reply-delete-btn:hover {
+  color: #b13434;
+}
+
+.reply-author {
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Lien vers le profil depuis le nom / avatar du commentaire */
+a.reply-author {
+  text-decoration: none;
+  color: inherit;
+  transition: color 0.2s;
+}
+
+a.reply-author:hover {
+  color: var(--brand-primary);
+}
+
+.reply-avatar-link {
+  display: block;
+  flex-shrink: 0;
+  text-decoration: none;
+  border-radius: 50%;
+  line-height: 0;
+}
+
+.reply-avatar-link:hover .reply-avatar-img {
+  opacity: 0.9;
+}
+
+.reply-time {
+  color: #999;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.reply-text {
+  color: #555;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.verified-badge {
+  color: var(--brand-primary);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.reply-badge-you {
+  background: var(--brand-primary);
+  color: white;
+  padding: 2px 8px;
   border-radius: 12px;
-  margin: 12px 0;
+  font-size: 10px;
+  font-weight: 600;
 }
 
-.youtube-embed {
+/* ============================================
+   REPLY HOVER ACTIONS (Like, Reply buttons)
+   ============================================ */
+.reply-hover-actions {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
+  right: 16px;
+  top: 8px;
+  display: none;
+  gap: 8px;
+  background: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
 
-/* Responsive Design */
+.reply-item.hoverable:hover .reply-hover-actions {
+  display: flex;
+}
+
+.reply-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+
+.reply-action-btn:hover {
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.reply-action-btn.liked {
+  color: #e0245e;
+}
+
+.reply-action-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ============================================
+   NESTED REPLY CONTAINER
+   ============================================ */
+.nested-reply-container {
+  margin-left: 40px;
+  padding-left: 12px;
+  border-left: 2px solid #e5e5e5;
+}
+
+.reply-item-with-children {
+  position: relative;
+}
+
+.reply-item-with-children .reply-content {
+  margin-bottom: 0;
+}
+
+.child-replies {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ============================================
+   NESTED REPLY FORM
+   ============================================ */
+.nested-reply-form {
+  margin-left: 40px;
+  padding-left: 12px;
+  margin-top: 8px;
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 2px solid var(--brand-primary);
+}
+
+.nested-reply-form .reply-form {
+  width: 100%;
+}
+
+.nested-reply-form .reply-input-wrapper {
+  background: white;
+  border-color: #e5e7eb;
+}
+
+.nested-reply-form .reply-input {
+  font-size: 14px;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 @media (max-width: 768px) {
   .post-card {
     padding: 16px;
+    margin-bottom: 12px !important;
+    margin-top: 12px !important;
+  }
+
+  .post-header {
+    margin-bottom: 8px;
   }
 
   .post-avatar {
@@ -445,12 +963,9 @@
     height: 40px;
   }
 
+  .post-author-username,
   .post-author-name {
     font-size: 14px;
-  }
-
-  .post-author-username {
-    font-size: 13px;
   }
 
   .post-content {
@@ -461,38 +976,323 @@
     gap: 16px;
     padding: 12px 0 8px 0;
   }
-  
+
   .action-btn {
     padding: 6px 10px;
     font-size: 13px;
   }
-  
+
   .action-icon {
     width: 18px;
     height: 18px;
   }
-  
+
   .reply-form-wrapper {
     gap: 10px;
   }
-  
+
   .reply-avatar-img {
     width: 36px;
     height: 36px;
   }
-  
+
   .reply-input {
     padding: 10px 14px;
     font-size: 14px;
   }
-  
+
   .reply-submit-btn {
     width: 36px;
     height: 36px;
   }
-  
+
   .reply-submit-btn svg {
     width: 16px;
     height: 16px;
+  }
+
+  .nested-reply-container {
+    margin-left: 24px;
+    padding-left: 8px;
+  }
+
+  .nested-reply-form {
+    margin-left: 24px;
+    padding-left: 8px;
+    padding: 8px;
+  }
+
+  /* Boutons Réponse / J'aime dans les commentaires : toujours visibles sur mobile (pas de hover) */
+  .reply-item.hoverable {
+    flex-wrap: wrap;
+  }
+
+  .reply-item.hoverable .reply-hover-actions {
+    display: flex !important;
+    position: static;
+    flex-basis: 100%;
+    margin-top: 8px;
+    padding-left: 48px; /* aligné avec le contenu (avatar 36px + gap 12px) */
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .reply-hover-actions .reply-action-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px;
+  }
+
+  .reply-hover-actions .reply-action-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+/* Ajouter à PostCard.css */
+
+/* Reply Stats - Likes et Réponses Count */
+.reply-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #999;
+}
+
+.reply-likes-count,
+.reply-replies-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-weight: 500;
+}
+
+.reply-likes-count:hover,
+.reply-replies-count:hover {
+  color: #555;
+}
+
+.reply-likes-count {
+  color: #e0245e;
+}
+
+/* Améliorer le style du formulaire imbriqué */
+.nested-reply-form {
+  margin-left: 40px;
+  padding-left: 12px;
+  margin-top: 12px;
+  background: #f9f9f9;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--brand-primary);
+}
+
+.nested-reply-form .reply-input-wrapper {
+  background: white;
+  border: 2px solid #e5e7eb;
+}
+
+.nested-reply-form .reply-input-wrapper:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(79, 208, 76, 0.1);
+}
+
+/* Style pour les réponses imbriquées visibles */
+.nested-reply-container {
+  margin-left: 40px;
+  padding-left: 12px;
+  margin-top: 12px;
+  border-left: 2px solid #e5e5e5;
+}
+
+.nested-reply-container .reply-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.nested-reply-container .reply-item:last-child {
+  border-bottom: none;
+}
+
+/* Animation d'ajout de réponse */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reply-item-with-children {
+  animation: slideIn 0.3s ease;
+}
+/* Ajouter ce CSS à PostCard.css pour améliorer l'indentation */
+
+/* ============================================
+   NESTED REPLY CONTAINER - Indentation Visual
+   ============================================ */
+.nested-reply-container {
+  margin-left: 50px;
+  padding-left: 16px;
+  border-left: 2px solid var(--brand-primary);
+  margin-top: 12px;
+}
+
+.nested-reply-container .reply-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.nested-reply-container .reply-item:last-child {
+  border-bottom: none;
+}
+
+/* Double imbrication */
+.nested-reply-container .nested-reply-container {
+  margin-left: 50px;
+  padding-left: 16px;
+  border-left: 2px solid var(--brand-accent);
+  margin-top: 8px;
+}
+
+/* Triple imbrication */
+.nested-reply-container .nested-reply-container .nested-reply-container {
+  border-left-color: var(--brand-secondary);
+}
+
+/* ============================================
+   REPLY ITEM WITH CHILDREN
+   ============================================ */
+.reply-item-with-children {
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   REPLY STATS - Compteurs visibles
+   ============================================ */
+.reply-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #999;
+}
+
+.reply-likes-count,
+.reply-replies-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.reply-likes-count:hover,
+.reply-replies-count:hover {
+  color: #555;
+  transform: scale(1.05);
+}
+
+.reply-likes-count {
+  color: #e0245e;
+  font-weight: 600;
+}
+
+.reply-replies-count {
+  color: var(--brand-primary);
+}
+
+.reply-replies-count:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   NESTED REPLY FORM - Formulaire Imbriqué
+   ============================================ */
+.nested-reply-form {
+  margin-left: 50px;
+  padding-left: 16px;
+  margin-top: 12px;
+  background: #f9f9f9;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 3px solid var(--brand-primary);
+  animation: slideIn 0.2s ease;
+}
+
+.nested-reply-form .reply-form {
+  width: 100%;
+}
+
+.nested-reply-form .reply-input-wrapper {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 20px;
+}
+
+.nested-reply-form .reply-input-wrapper:focus-within {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(79, 208, 76, 0.1);
+}
+
+.nested-reply-form .reply-input {
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+.nested-reply-form .reply-submit-btn {
+  width: 38px;
+  height: 38px;
+  background: var(--brand-primary);
+}
+
+.nested-reply-form .reply-submit-btn:hover:not(:disabled) {
+  background: var(--brand-primary-dark);
+}
+
+/* ============================================
+   RESPONSIVE - Mobile Indentation
+   ============================================ */
+@media (max-width: 768px) {
+  .nested-reply-container {
+    margin-left: 30px;
+    padding-left: 12px;
+  }
+
+  .nested-reply-container .nested-reply-container {
+    margin-left: 30px;
+    padding-left: 12px;
+  }
+
+  .nested-reply-form {
+    margin-left: 30px;
+    padding-left: 12px;
+    padding: 8px 12px;
+  }
+
+  .reply-stats {
+    gap: 12px;
+    font-size: 12px;
   }
 }

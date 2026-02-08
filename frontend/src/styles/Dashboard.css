@@ -4,16 +4,28 @@
   min-height: 100vh;
   width: calc(100% - 250px);
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard Layout - 3 colonnes */
+.dashboard-layout {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - 70px);
+  margin-top: 64px; /* Account for fixed navbar */
 }
 
 /* Dashboard Container */
 .dashboard-container {
+  flex: 1;
   min-height: 100vh;
-  background: #f3f4f6;
+  background: var(--bg-primary);
   padding: 2rem 1rem;
   transition: all 0.3s ease;
   position: relative;
   width: 100%;
+  overflow-y: auto;
 }
 
 /* ========== MOBILE RESPONSIVE (< 700px) ========== */
@@ -49,13 +61,38 @@
     height: 100%;
   }
 }
+
+@media (max-width: 699px) {
+  .dashboard-wrapper {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  /* Ne pas forcer min-height: 100vh pour garder height: calc(100vh - 155px)
+     et éviter que le contenu soit masqué sous la barre de navigation */
+  .dashboard-container {
+    width: 100%;
+    min-height: 0;
+  }
+}
 @media (min-width: 780px) and (max-width: 1000px) {
- .sidebar{
-  width: 30% !important;
- }
- .public-profile-container{
-  width: 100% !important;
- }
+  .sidebar {
+    width: 30% !important;
+  }
+
+  .dashboard-wrapper {
+    margin-left: 30%;
+    width: 70%;
+  }
+
+  .dashboard-container {
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .public-profile-container {
+    width: 100% !important;
+  }
 }
 /* @media (min-width :1000px) {
   .sidebar{
@@ -72,7 +109,7 @@
     min-height: 100vh;
     display: block;
   }
-  
+
   /* Tablet container with sidebar space */
   .dashboard-container {
     position: fixed;
@@ -147,7 +184,7 @@
   width: 50px;
   height: 50px;
   border: 4px solid #e5e7eb;
-  border-top: 4px solid #8b5cf6;
+  border-top: 4px solid var(--brand-accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -194,7 +231,11 @@
   font-weight: 600;
   color: #1f2937;
   margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+  background: linear-gradient(
+    135deg,
+    var(--brand-accent) 0%,
+    var(--brand-secondary) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -271,7 +312,9 @@
   border-radius: 14px;
   padding: 12px 14px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .notification-card:hover {
@@ -281,7 +324,7 @@
 
 .notification-card.unread {
   background: #f5f3ff;
-  border-left: 4px solid #8b5cf6;
+  border-left: 4px solid var(--brand-accent);
 }
 
 /* Avatar */
@@ -315,4 +358,118 @@
 .notification-time {
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+/* Notification Footer with delete button */
+.notification-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+/* Delete notification button */
+.btn-delete-notification {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-delete-notification:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Clear all notifications button */
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+}
+
+.btn-clear-all-notifications {
+  background: linear-gradient(135deg, #ff006e 0%, #fb5607 100%);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-clear-all-notifications:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 0, 110, 0.3);
+}
+
+.btn-clear-all-notifications:active {
+  transform: translateY(0);
+}
+
+.notification-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.notification-filter-button {
+  background: #f8fafc;
+  color: #374151;
+  border: 1px solid rgba(79, 208, 76, 0.15);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notification-filter-button:hover {
+  background: rgba(79, 208, 76, 0.08);
+  border-color: rgba(79, 208, 76, 0.35);
+  color: #1f2937;
+}
+
+.notification-filter-button.active {
+  background: var(--brand-gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 14px rgba(79, 208, 76, 0.25);
+}
+
+body.dark .notification-filter-button {
+  background: rgba(255, 255, 255, 0.04);
+  color: #e5e7eb;
+  border-color: rgba(79, 208, 76, 0.25);
+}
+
+body.dark .notification-filter-button:hover {
+  background: rgba(79, 208, 76, 0.2);
+  border-color: rgba(79, 208, 76, 0.45);
+  color: #ffffff;
+}
+
+body.dark .notification-filter-button.active {
+  background: var(--brand-gradient);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 8px 16px rgba(79, 208, 76, 0.35);
 }

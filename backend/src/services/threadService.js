@@ -3,10 +3,10 @@ import Like from "../models/Like.js";
 import Reply from "../models/Reply.js";
 import Follow from "../models/Follow.js";
 import User from "../models/User.js";
-import Notification from "../models/Notification.js"; // Import Notification model to create likes notifications
 import settingsService from "./settingsService.js";
 import userService from "./userService.js";
 import notificationService from "./notificationService.js";
+import socketService from "./socketService.js";
 
 class ThreadService {
   /**
@@ -20,20 +20,16 @@ class ThreadService {
         media,
       });
 
-      // Incrémenter le compteur de threads de l'utilisateur
       await userService.incrementThreadsCount(authorId);
-
-      // Détecter et créer les notifications de mention
       await notificationService.createMentionNotifications(
         content,
         authorId,
-        thread._id
+        thread._id,
       );
 
-      // Populate l'auteur
       await thread.populate(
         "author",
-        "username name profilePicture isVerified"
+        "username name profilePicture isVerified",
       );
 
       return thread;
@@ -63,11 +59,8 @@ class ThreadService {
 
       const query = {
         $or: [
-          // Threads des comptes publics
           { author: { $nin: privateUserIds } },
-          // Threads de l'utilisateur connecté (seulement si connecté)
           ...(currentUserId ? [{ author: currentUserId }] : []),
-          // Threads des comptes privés suivis (seulement si connecté)
           ...(currentUserId && followedPrivateUsers.length > 0
             ? [{ author: { $in: followedPrivateUsers } }]
             : []),
@@ -80,27 +73,43 @@ class ThreadService {
         .limit(limit)
         .populate(
           "author",
-          "username name profilePicture isVerified isPrivate"
+          "username name profilePicture isVerified isPrivate",
         );
 
       const total = await Thread.countDocuments(query);
 
-      // Ajouter isLiked et isFollowing pour chaque thread
       let threadsWithLikes = threads;
       if (currentUserId) {
-        // Pré-charger les utilisateurs suivis pour éviter N requêtes
         const followedUsers = await Follow.find({
           follower: currentUserId,
-          status: { $in: ["accepte", "en_attente"] }
+          status: { $in: ["accepte", "en_attente"] },
         }).select("following status");
 
         const followedMap = new Map();
-        followedUsers.forEach(f => {
-          followedMap.set(f.following.toString(), f.status);
+        followedUsers.forEach((f) => {
+          if (f.following) {
+            followedMap.set(f.following.toString(), f.status);
+          }
         });
 
-        threadsWithLikes = await Promise.all(
-          threads.map(async (thread) => {
+        const userReposts = await Thread.find({
+          author: currentUserId,
+          repostedFrom: { $exists: true, $ne: null },
+        }).select("repostedFrom");
+
+        const repostedMap = new Map();
+        userReposts.forEach((repost) => {
+          if (repost.repostedFrom) {
+            repostedMap.set(repost.repostedFrom.toString(), true);
+          }
+        });
+
+        threadsWithLikes = (
+          await Promise.all(
+            threads.map(async (thread) => {
+              if (!thread.author) {
+                return null;
+              }
             const isLiked = await Like.exists({
               user: currentUserId,
               thread: thread._id,
@@ -109,18 +118,101 @@ class ThreadService {
             const authorId = thread.author._id.toString();
             const followStatus = followedMap.get(authorId);
             const isFollowing = !!followStatus;
+            const repostSourceId =
+              thread.repostedFrom?._id || thread.repostedFrom || thread._id;
+            const isReposted = repostedMap.has(repostSourceId.toString());
+
+            let threadData = thread.toObject();
+
+            // Populate repostedFrom avec toutes les infos nécessaires
+            if (thread.repostedFrom) {
+              await thread.populate({
+                path: "repostedFrom",
+                select:
+                  "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+                populate: {
+                  path: "author",
+                  select: "username name profilePicture isVerified",
+                },
+              });
+
+              // Ajouter isLiked pour le post original aussi
+              const originalThreadId =
+                thread.repostedFrom?._id || thread.repostedFrom;
+              const originalIsLiked = originalThreadId
+                ? await Like.exists({
+                    user: currentUserId,
+                    thread: originalThreadId,
+                  })
+                : false;
+
+              const originalAuthor =
+                typeof thread.repostedFrom.author?.toObject === "function"
+                  ? thread.repostedFrom.author.toObject()
+                  : thread.repostedFrom.author;
+              const originalAuthorId = originalAuthor?._id?.toString();
+              const originalFollowStatus = originalAuthorId
+                ? followedMap.get(originalAuthorId)
+                : null;
+
+              threadData.repostedFrom = {
+                ...thread.repostedFrom.toObject(),
+                isLiked: !!originalIsLiked,
+                likesCount: thread.repostedFrom.likes?.length || 0,
+                author: originalAuthor
+                  ? {
+                      ...originalAuthor,
+                      isFollowing: !!originalFollowStatus,
+                      followStatus: originalFollowStatus,
+                    }
+                  : originalAuthor,
+              };
+            }
 
             return {
-              ...thread.toObject(),
+              ...threadData,
               isLiked: !!isLiked,
+              isReposted,
               author: {
                 ...thread.author.toObject(),
-                isFollowing: isFollowing, // true si suivi ou en attente
-                followStatus: followStatus // "accepte" ou "en_attente"
-              }
+                isFollowing: isFollowing,
+                followStatus: followStatus,
+              },
             };
-          })
-        );
+          }),
+        )
+      ).filter(Boolean);
+      } else {
+        // Même sans utilisateur connecté, populate repostedFrom
+        threadsWithLikes = (
+          await Promise.all(
+            threads.map(async (thread) => {
+              if (!thread.author) {
+                return null;
+              }
+            let threadData = thread.toObject();
+
+            if (thread.repostedFrom) {
+              await thread.populate({
+                path: "repostedFrom",
+                select:
+                  "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+                populate: {
+                  path: "author",
+                  select: "username name profilePicture isVerified",
+                },
+              });
+
+              threadData.repostedFrom = {
+                ...thread.repostedFrom.toObject(),
+                likesCount: thread.repostedFrom.likes?.length || 0,
+              };
+            }
+
+            return threadData;
+          }),
+        )
+      ).filter(Boolean);
       }
 
       return {
@@ -148,7 +240,6 @@ class ThreadService {
 
       const skip = (page - 1) * limit;
 
-      // Trouver les IDs des utilisateurs suivis (acceptés)
       const follows = await Follow.find({
         follower: currentUserId,
         status: "accepte",
@@ -156,24 +247,15 @@ class ThreadService {
 
       const followedIds = follows.map((f) => f.following);
 
-      // Inclure l'utilisateur lui-même dans son flux
-      const authorIds = [...followedIds, currentUserId];
-
-      // Trouver les IDs des utilisateurs privés
       const privateUsers = await User.find({ isPrivate: true }).select("_id");
       const privateUserIds = privateUsers.map((user) => user._id.toString());
 
       const query = {
         $or: [
-          // 1. Posts des utilisateurs suivis (Followed)
           { author: { $in: followedIds } },
-          // 2. Posts de l'utilisateur connecté (Self)
           { author: currentUserId },
-          // 3. TOUS les posts publics (Public), même ceux non suivis
-          // Exclure les auteurs privés qui ne sont PAS dans les suivis (déjà géré par le point 1 si suivis)
-          // Mais plus simplement: on prend tout ce qui n'est pas privé
-          { author: { $nin: privateUserIds } }
-        ]
+          { author: { $nin: privateUserIds } },
+        ],
       };
 
       const threads = await Thread.find(query)
@@ -182,28 +264,41 @@ class ThreadService {
         .limit(limit)
         .populate(
           "author",
-          "username name profilePicture isVerified isPrivate"
+          "username name profilePicture isVerified isPrivate",
         );
 
       const total = await Thread.countDocuments(query);
 
-      // Ajouter isLiked et isFollowing pour chaque thread
-      // Note: followedIds contient déjà les IDs suivis (acceptés) récupérés plus haut, 
-      // mais on doit aussi savoir s'il y a des "en_attente" et mapper pour chaque thread.
-      // Récupérons le statut exact.
-
       const allFollows = await Follow.find({
         follower: currentUserId,
-        status: { $in: ["accepte", "en_attente"] }
+        status: { $in: ["accepte", "en_attente"] },
       }).select("following status");
 
       const followedMap = new Map();
-      allFollows.forEach(f => {
-        followedMap.set(f.following.toString(), f.status);
+      allFollows.forEach((f) => {
+        if (f.following) {
+          followedMap.set(f.following.toString(), f.status);
+        }
       });
 
-      const threadsWithLikes = await Promise.all(
-        threads.map(async (thread) => {
+      const userReposts = await Thread.find({
+        author: currentUserId,
+        repostedFrom: { $exists: true, $ne: null },
+      }).select("repostedFrom");
+
+      const repostedMap = new Map();
+      userReposts.forEach((repost) => {
+        if (repost.repostedFrom) {
+          repostedMap.set(repost.repostedFrom.toString(), true);
+        }
+      });
+
+      const threadsWithLikes = (
+        await Promise.all(
+          threads.map(async (thread) => {
+            if (!thread.author) {
+              return null;
+            }
           const isLiked = await Like.exists({
             user: currentUserId,
             thread: thread._id,
@@ -211,18 +306,69 @@ class ThreadService {
 
           const authorId = thread.author._id.toString();
           const followStatus = followedMap.get(authorId);
+          const repostSourceId =
+            thread.repostedFrom?._id || thread.repostedFrom || thread._id;
+          const isReposted = repostedMap.has(repostSourceId.toString());
+
+          let threadData = thread.toObject();
+
+          // Populate repostedFrom avec toutes les infos
+          if (thread.repostedFrom) {
+            await thread.populate({
+              path: "repostedFrom",
+              select:
+                "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+              populate: {
+                path: "author",
+                select: "username name profilePicture isVerified",
+              },
+            });
+
+            const originalThreadId =
+              thread.repostedFrom?._id || thread.repostedFrom;
+            const originalIsLiked = originalThreadId
+              ? await Like.exists({
+                  user: currentUserId,
+                  thread: originalThreadId,
+                })
+              : false;
+
+            const originalAuthor =
+              typeof thread.repostedFrom.author?.toObject === "function"
+                ? thread.repostedFrom.author.toObject()
+                : thread.repostedFrom.author;
+            const originalAuthorId = originalAuthor?._id?.toString();
+            const originalFollowStatus = originalAuthorId
+              ? followedMap.get(originalAuthorId)
+              : null;
+
+            threadData.repostedFrom = {
+              ...thread.repostedFrom.toObject(),
+              isLiked: !!originalIsLiked,
+              likesCount: thread.repostedFrom.likes?.length || 0,
+              author: originalAuthor
+                ? {
+                    ...originalAuthor,
+                    isFollowing: !!originalFollowStatus,
+                    followStatus: originalFollowStatus,
+                  }
+                : originalAuthor,
+            };
+          }
 
           return {
-            ...thread.toObject(),
+            ...threadData,
             isLiked: !!isLiked,
+            isReposted,
             author: {
               ...thread.author.toObject(),
               isFollowing: !!followStatus,
-              followStatus: followStatus
-            }
+              followStatus: followStatus,
+            },
           };
-        })
-      );
+        }),
+      )
+    ).filter(Boolean);
 
       return {
         threads: threadsWithLikes,
@@ -245,21 +391,24 @@ class ThreadService {
     try {
       const thread = await Thread.findById(threadId).populate(
         "author",
-        "username name profilePicture isVerified isPrivate"
+        "username name profilePicture isVerified isPrivate",
       );
 
       if (!thread) {
         throw new Error("Thread non trouvé");
       }
 
-      // Vérifier les permissions de visualisation avec les nouveaux paramètres
+      if (!thread.author) {
+        throw new Error("Auteur du thread non trouvé");
+      }
+
       if (
         currentUserId &&
         currentUserId.toString() !== thread.author._id.toString()
       ) {
         const canView = await settingsService.canViewContent(
           currentUserId,
-          thread.author._id
+          thread.author._id,
         );
         if (!canView) {
           throw new Error("Ce thread est privé");
@@ -268,16 +417,86 @@ class ThreadService {
 
       const threadData = thread.toObject();
 
-      // Vérifier si l'utilisateur a liké
       if (currentUserId) {
         const isLiked = await Like.exists({
           user: currentUserId,
           thread: threadId,
         });
         threadData.isLiked = !!isLiked;
+
+        const repostSourceId =
+          thread.repostedFrom?._id || thread.repostedFrom || threadId;
+        const isReposted = await Thread.exists({
+          author: currentUserId,
+          repostedFrom: repostSourceId,
+        });
+        threadData.isReposted = !!isReposted;
+
+        const followStatus = await Follow.findOne({
+          follower: currentUserId,
+          following: thread.author._id,
+          status: { $in: ["accepte", "en_attente"] },
+        }).select("status");
+
+        if (threadData.author) {
+          threadData.author = {
+            ...threadData.author,
+            isFollowing: !!followStatus,
+            followStatus: followStatus?.status,
+          };
+        }
       }
 
-      // Récupérer les réponses
+      // Populate repostedFrom avec toutes les infos
+      if (thread.repostedFrom) {
+        await thread.populate({
+          path: "repostedFrom",
+          select:
+            "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+          populate: {
+            path: "author",
+            select: "username name profilePicture isVerified",
+          },
+        });
+
+        if (currentUserId) {
+          const originalThreadId =
+            thread.repostedFrom?._id || thread.repostedFrom;
+          const originalIsLiked = originalThreadId
+            ? await Like.exists({
+                user: currentUserId,
+                thread: originalThreadId,
+              })
+            : false;
+          const originalAuthorId = thread.repostedFrom?.author?._id;
+          const originalFollowStatus = originalAuthorId
+            ? await Follow.findOne({
+                follower: currentUserId,
+                following: originalAuthorId,
+                status: { $in: ["accepte", "en_attente"] },
+              }).select("status")
+            : null;
+
+          threadData.repostedFrom = {
+            ...thread.repostedFrom.toObject(),
+            isLiked: !!originalIsLiked,
+            likesCount: thread.repostedFrom.likes?.length || 0,
+            author: thread.repostedFrom.author
+              ? {
+                  ...thread.repostedFrom.author.toObject(),
+                  isFollowing: !!originalFollowStatus,
+                  followStatus: originalFollowStatus?.status,
+                }
+              : thread.repostedFrom.author,
+          };
+        } else {
+          threadData.repostedFrom = {
+            ...thread.repostedFrom.toObject(),
+            likesCount: thread.repostedFrom.likes?.length || 0,
+          };
+        }
+      }
+
       const replies = await Reply.find({ thread: threadId })
         .sort({ createdAt: -1 })
         .populate("author", "username name profilePicture isVerified");
@@ -300,11 +519,10 @@ class ThreadService {
         throw new Error("Utilisateur non trouvé");
       }
 
-      // Vérifier les permissions de visualisation avec les nouveaux paramètres
       if (currentUserId && currentUserId.toString() !== userId.toString()) {
         const canView = await settingsService.canViewContent(
           currentUserId,
-          userId
+          userId,
         );
         if (!canView) {
           throw new Error("Ce compte est privé");
@@ -319,27 +537,43 @@ class ThreadService {
         .limit(limit)
         .populate(
           "author",
-          "username name profilePicture isVerified isPrivate"
+          "username name profilePicture isVerified isPrivate",
         );
 
       const total = await Thread.countDocuments({ author: userId });
 
-      // Ajouter isLiked et isFollowing pour chaque thread
       let threadsWithLikes = threads;
       if (currentUserId) {
-        // Pré-charger les status de suivi
         const followedUsers = await Follow.find({
           follower: currentUserId,
-          status: { $in: ["accepte", "en_attente"] }
+          status: { $in: ["accepte", "en_attente"] },
         }).select("following status");
 
         const followedMap = new Map();
-        followedUsers.forEach(f => {
-          followedMap.set(f.following.toString(), f.status);
+        followedUsers.forEach((f) => {
+          if (f.following) {
+            followedMap.set(f.following.toString(), f.status);
+          }
         });
 
-        threadsWithLikes = await Promise.all(
-          threads.map(async (thread) => {
+        const userReposts = await Thread.find({
+          author: currentUserId,
+          repostedFrom: { $exists: true, $ne: null },
+        }).select("repostedFrom");
+
+        const repostedMap = new Map();
+        userReposts.forEach((repost) => {
+          if (repost.repostedFrom) {
+            repostedMap.set(repost.repostedFrom.toString(), true);
+          }
+        });
+
+        threadsWithLikes = (
+          await Promise.all(
+            threads.map(async (thread) => {
+              if (!thread.author) {
+                return null;
+              }
             const isLiked = await Like.exists({
               user: currentUserId,
               thread: thread._id,
@@ -347,18 +581,100 @@ class ThreadService {
 
             const authorId = thread.author._id.toString();
             const followStatus = followedMap.get(authorId);
+            const repostSourceId =
+              thread.repostedFrom?._id || thread.repostedFrom || thread._id;
+            const isReposted = repostedMap.has(repostSourceId.toString());
+
+            let threadData = thread.toObject();
+
+            // Populate repostedFrom
+            if (thread.repostedFrom) {
+              await thread.populate({
+                path: "repostedFrom",
+                select:
+                  "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+                populate: {
+                  path: "author",
+                  select: "username name profilePicture isVerified",
+                },
+              });
+
+              const originalThreadId =
+                thread.repostedFrom?._id || thread.repostedFrom;
+              const originalIsLiked = originalThreadId
+                ? await Like.exists({
+                    user: currentUserId,
+                    thread: originalThreadId,
+                  })
+                : false;
+
+              const originalAuthor =
+                typeof thread.repostedFrom.author?.toObject === "function"
+                  ? thread.repostedFrom.author.toObject()
+                  : thread.repostedFrom.author;
+              const originalAuthorId = originalAuthor?._id?.toString();
+              const originalFollowStatus = originalAuthorId
+                ? followedMap.get(originalAuthorId)
+                : null;
+
+              threadData.repostedFrom = {
+                ...thread.repostedFrom.toObject(),
+                isLiked: !!originalIsLiked,
+                likesCount: thread.repostedFrom.likes?.length || 0,
+                author: originalAuthor
+                  ? {
+                      ...originalAuthor,
+                      isFollowing: !!originalFollowStatus,
+                      followStatus: originalFollowStatus,
+                    }
+                  : originalAuthor,
+              };
+            }
 
             return {
-              ...thread.toObject(),
+              ...threadData,
               isLiked: !!isLiked,
+              isReposted,
               author: {
                 ...thread.author.toObject(),
                 isFollowing: !!followStatus,
-                followStatus: followStatus
-              }
+                followStatus: followStatus,
+              },
             };
-          })
-        );
+          }),
+        )
+      ).filter(Boolean);
+      } else {
+        // Sans utilisateur connecté, populate quand même repostedFrom
+        threadsWithLikes = (
+          await Promise.all(
+            threads.map(async (thread) => {
+              if (!thread.author) {
+                return null;
+              }
+            let threadData = thread.toObject();
+
+            if (thread.repostedFrom) {
+              await thread.populate({
+                path: "repostedFrom",
+                select:
+                  "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+                populate: {
+                  path: "author",
+                  select: "username name profilePicture isVerified",
+                },
+              });
+
+              threadData.repostedFrom = {
+                ...thread.repostedFrom.toObject(),
+                likesCount: thread.repostedFrom.likes?.length || 0,
+              };
+            }
+
+            return threadData;
+          }),
+        )
+      ).filter(Boolean);
       }
 
       return {
@@ -376,6 +692,258 @@ class ThreadService {
   }
 
   /**
+   * Reposter un thread (repost)
+   */
+  async repostThread(threadId, userId) {
+    try {
+      const originalThread = await Thread.findById(threadId).populate(
+        "author",
+        "username name",
+      );
+      if (!originalThread) {
+        throw new Error("Thread non trouvé");
+      }
+
+      const existingRepost = await Thread.findOne({
+        author: userId,
+        repostedFrom: threadId,
+      });
+
+      if (existingRepost) {
+        throw new Error("Vous avez déjà reposté ce thread");
+      }
+
+      if (originalThread.author._id.toString() === userId.toString()) {
+        throw new Error("Vous ne pouvez pas reposter votre propre thread");
+      }
+
+      const authorName =
+        originalThread.author.name ||
+        originalThread.author.username ||
+        "utilisateur";
+
+      const repost = await Thread.create({
+        author: userId,
+        content: `Repost de ${authorName}`,
+        repostedFrom: threadId,
+      });
+
+      await Thread.findByIdAndUpdate(threadId, { $inc: { repostsCount: 1 } });
+      await userService.incrementThreadsCount(userId);
+
+      if (originalThread.author._id.toString() !== userId.toString()) {
+        await notificationService.createNotification({
+          recipient: originalThread.author._id,
+          sender: userId,
+          type: "thread_repost",
+          thread: threadId,
+        });
+      }
+
+      // Populate avec toutes les infos nécessaires
+      await repost.populate([
+        { path: "author", select: "username name profilePicture isVerified" },
+        {
+          path: "repostedFrom",
+          select:
+            "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+          populate: {
+            path: "author",
+            select: "username name profilePicture isVerified",
+          },
+        },
+      ]);
+
+      return repost;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Rechercher des threads par contenu
+   */
+  async searchThreads(query, page = 1, limit = 10, currentUserId = null) {
+    try {
+      const skip = (page - 1) * limit;
+
+      const privateUsers = await User.find({ isPrivate: true }).select("_id");
+      const privateUserIds = privateUsers.map((user) => user._id);
+
+      let followedPrivateUsers = [];
+      if (currentUserId) {
+        const follows = await Follow.find({
+          follower: currentUserId,
+          status: "accepte",
+        }).select("following");
+        followedPrivateUsers = follows.map((f) => f.following.toString());
+      }
+
+      const searchQuery = {
+        content: { $regex: query, $options: "i" },
+        $or: [
+          { author: { $nin: privateUserIds } },
+          ...(currentUserId ? [{ author: currentUserId }] : []),
+          ...(currentUserId && followedPrivateUsers.length > 0
+            ? [{ author: { $in: followedPrivateUsers } }]
+            : []),
+        ],
+      };
+
+      const threads = await Thread.find(searchQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .populate(
+          "author",
+          "username name profilePicture isVerified isPrivate",
+        );
+
+      const total = await Thread.countDocuments(searchQuery);
+
+      let threadsWithLikes = threads;
+      if (currentUserId) {
+        const followedUsers = await Follow.find({
+          follower: currentUserId,
+          status: { $in: ["accepte", "en_attente"] },
+        }).select("following status");
+
+        const followedMap = new Map();
+        followedUsers.forEach((f) => {
+          if (f.following) {
+            followedMap.set(f.following.toString(), f.status);
+          }
+        });
+
+        const userReposts = await Thread.find({
+          author: currentUserId,
+          repostedFrom: { $exists: true, $ne: null },
+        }).select("repostedFrom");
+
+        const repostedMap = new Map();
+        userReposts.forEach((repost) => {
+          if (repost.repostedFrom) {
+            repostedMap.set(repost.repostedFrom.toString(), true);
+          }
+        });
+
+        threadsWithLikes = (
+          await Promise.all(
+            threads.map(async (thread) => {
+              if (!thread.author) {
+                return null;
+              }
+              const isLiked = await Like.exists({
+                user: currentUserId,
+                thread: thread._id,
+              });
+
+              const authorId = thread.author._id.toString();
+              const followStatus = followedMap.get(authorId);
+            const repostSourceId =
+              thread.repostedFrom?._id || thread.repostedFrom || thread._id;
+              const isReposted = repostedMap.has(repostSourceId.toString());
+
+              let threadData = thread.toObject();
+
+              if (thread.repostedFrom) {
+                await thread.populate({
+                  path: "repostedFrom",
+                  select:
+                    "author content media likes replies repliesCount repostsCount createdAt updatedAt",
+                  populate: {
+                    path: "author",
+                    select: "username name profilePicture isVerified",
+                  },
+                });
+
+                const originalThreadId =
+                  thread.repostedFrom?._id || thread.repostedFrom;
+                const originalIsLiked = originalThreadId
+                  ? await Like.exists({
+                      user: currentUserId,
+                      thread: originalThreadId,
+                    })
+                  : false;
+
+                const originalAuthor =
+                  typeof thread.repostedFrom.author?.toObject === "function"
+                    ? thread.repostedFrom.author.toObject()
+                    : thread.repostedFrom.author;
+                const originalAuthorId = originalAuthor?._id?.toString();
+                const originalFollowStatus = originalAuthorId
+                  ? followedMap.get(originalAuthorId)
+                  : null;
+
+                threadData.repostedFrom = {
+                  ...thread.repostedFrom.toObject(),
+                  isLiked: !!originalIsLiked,
+                  likesCount: thread.repostedFrom.likes?.length || 0,
+                  author: originalAuthor
+                    ? {
+                        ...originalAuthor,
+                        isFollowing: !!originalFollowStatus,
+                        followStatus: originalFollowStatus,
+                      }
+                    : originalAuthor,
+                };
+              }
+
+              return {
+                ...threadData,
+                isLiked: !!isLiked,
+                isReposted,
+                author: {
+                  ...thread.author.toObject(),
+                  isFollowing: !!followStatus,
+                  followStatus: followStatus,
+                },
+              };
+            }),
+          )
+        ).filter(Boolean);
+      }
+
+      return {
+        threads: threadsWithLikes,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(total / limit),
+          totalThreads: total,
+          hasMore: skip + threads.length < total,
+        },
+      };
+    } catch (error) {
+      console.error("Error in searchThreads service:", error);
+      throw new Error("Erreur lors de la recherche des threads");
+    }
+  }
+
+  /**
+   * Annuler un repost
+   */
+  async unrepostThread(threadId, userId) {
+    try {
+      const repost = await Thread.findOne({
+        author: userId,
+        repostedFrom: threadId,
+      });
+
+      if (!repost) {
+        throw new Error("Repost non trouvé");
+      }
+
+      await Thread.findByIdAndDelete(repost._id);
+      await Thread.findByIdAndUpdate(threadId, { $inc: { repostsCount: -1 } });
+      await userService.decrementThreadsCount(userId);
+
+      return { message: "Repost annulé avec succès" };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
    * Supprimer un thread
    */
   async deleteThread(threadId, userId) {
@@ -386,20 +954,35 @@ class ThreadService {
         throw new Error("Thread non trouvé");
       }
 
-      // Vérifier que l'utilisateur est l'auteur
       if (thread.author.toString() !== userId.toString()) {
         throw new Error("Non autorisé à supprimer ce thread");
       }
 
-      // Supprimer le thread
-      await Thread.findByIdAndDelete(threadId);
+      const reposts = await Thread.find({ repostedFrom: threadId }).select(
+        "_id author",
+      );
+      const repostIds = reposts.map((repost) => repost._id);
+      const threadIdsToDelete = [threadId, ...repostIds];
 
-      // Supprimer les likes et replies associés
-      await Like.deleteMany({ thread: threadId });
-      await Reply.deleteMany({ thread: threadId });
+      const repostCountsByAuthor = new Map();
+      reposts.forEach((repost) => {
+        const authorId = repost.author.toString();
+        repostCountsByAuthor.set(
+          authorId,
+          (repostCountsByAuthor.get(authorId) || 0) + 1,
+        );
+      });
 
-      // Décrémenter le compteur
+      await Thread.deleteMany({ _id: { $in: threadIdsToDelete } });
+      await Like.deleteMany({ thread: { $in: threadIdsToDelete } });
+      await Reply.deleteMany({ thread: { $in: threadIdsToDelete } });
+
       await userService.decrementThreadsCount(userId);
+      for (const [authorId, count] of repostCountsByAuthor.entries()) {
+        await User.findByIdAndUpdate(authorId, {
+          $inc: { threadsCount: -count },
+        });
+      }
 
       return { message: "Thread supprimé avec succès" };
     } catch (error) {
@@ -418,12 +1001,10 @@ class ThreadService {
         throw new Error("Thread non trouvé");
       }
 
-      // Vérifier que l'utilisateur est l'auteur
       if (thread.author.toString() !== userId.toString()) {
         throw new Error("Non autorisé à modifier ce thread");
       }
 
-      // Mettre à jour le contenu si fourni
       if (content !== undefined && content !== null) {
         if (content.trim().length === 0) {
           throw new Error("Le contenu ne peut pas être vide");
@@ -434,26 +1015,23 @@ class ThreadService {
         thread.content = content;
       }
 
-      // Mettre à jour le media si fourni
       if (media !== null) {
         thread.media = media;
       }
 
-      // Détecter et créer les notifications de mention si le contenu est mis à jour
       if (content && content !== thread.content) {
         await notificationService.createMentionNotifications(
           content,
           userId,
-          threadId
+          threadId,
         );
       }
 
       await thread.save();
 
-      // Populate l'auteur pour le retourner
       await thread.populate(
         "author",
-        "username name profilePicture isVerified"
+        "username name profilePicture isVerified",
       );
 
       return thread;
@@ -473,7 +1051,6 @@ class ThreadService {
         throw new Error("Thread non trouvé");
       }
 
-      // Vérifier si déjà liké
       const existingLike = await Like.findOne({
         user: userId,
         thread: threadId,
@@ -483,150 +1060,27 @@ class ThreadService {
         throw new Error("Vous avez déjà liké ce thread");
       }
 
-      // Créer le like
       await Like.create({ user: userId, thread: threadId });
 
-      // Ajouter l'utilisateur au tableau likes du thread
       thread.likes.push(userId);
       await thread.save();
 
-      // Créer une notification si l'auteur accepte ce type de notification
       if (thread.author.toString() !== userId.toString()) {
-        const canReceiveNotification =
-          await settingsService.canReceiveNotification(
-            thread.author,
-            "thread_like",
-            "inApp"
-          );
-
-        if (canReceiveNotification) {
-          await Notification.create({
-            type: "thread_like",
-            recipient: thread.author,
-            sender: userId,
-            thread: threadId,
-          });
-        }
+        await notificationService.createNotification({
+          type: "thread_like",
+          recipient: thread.author,
+          sender: userId,
+          thread: threadId,
+        });
       }
+
+      socketService.notifyAuthorThreadUpdate(thread.author, threadId, {
+        likesCount: thread.likes.length,
+      });
 
       return { message: "Thread liké", likesCount: thread.likes.length };
     } catch (error) {
       throw error;
-    }
-  }
-
-  /**
-   * Rechercher des threads par contenu
-   */
-  async searchThreads(query, page = 1, limit = 20, currentUserId = null) {
-    try {
-      const skip = (page - 1) * limit;
-
-      // Pipeline de recherche avec respect de la confidentialité
-      const searchPipeline = [
-        {
-          $match: {
-            content: { $regex: query, $options: "i" }
-          }
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "author",
-            foreignField: "_id",
-            as: "authorInfo"
-          }
-        },
-        {
-          $unwind: "$authorInfo"
-        },
-        // Filtrer les threads privés si l'utilisateur n'est pas autorisé
-        {
-          $addFields: {
-            canView: {
-              $or: [
-                { $eq: ["$authorInfo.isPrivate", false] }, // Thread public
-                { $eq: ["$authorInfo._id", currentUserId] }, // Propriétaire
-                // Si l'utilisateur est un follower accepté (requiert une jointure supplémentaire)
-              ]
-            }
-          }
-        },
-        {
-          $match: { canView: true }
-        },
-        {
-          $sort: { createdAt: -1 }
-        },
-        {
-          $skip: skip
-        },
-        {
-          $limit: limit
-        },
-        {
-          $lookup: {
-            from: "likes",
-            localField: "_id",
-            foreignField: "thread",
-            as: "likes"
-          }
-        },
-        {
-          $lookup: {
-            from: "replies",
-            localField: "_id",
-            foreignField: "thread",
-            as: "replies"
-          }
-        },
-        {
-          $project: {
-            content: 1,
-            media: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            likesCount: 1,
-            repliesCount: 1,
-            author: {
-              _id: "$authorInfo._id",
-              username: "$authorInfo.username",
-              name: "$authorInfo.name",
-              profilePicture: "$authorInfo.profilePicture",
-              isVerified: "$authorInfo.isVerified",
-              isPrivate: "$authorInfo.isPrivate"
-            },
-            isLiked: {
-              $in: [currentUserId, "$likes.user"]
-            },
-            likes: 1,
-            replies: 1
-          }
-        }
-      ];
-
-      const threads = await Thread.aggregate(searchPipeline);
-
-      // Ajouter les informations de like et reply si connecté
-      if (currentUserId) {
-        for (const thread of threads) {
-          // Vérifier si l'utilisateur actuel a liké
-          thread.isLiked = thread.likes.some(like =>
-            like.user && like.user.toString() === currentUserId.toString()
-          );
-        }
-      }
-
-      return {
-        threads,
-        pagination: {
-          page,
-          limit,
-          hasMore: threads.length === limit
-        }
-      };
-    } catch (error) {
-      throw new Error("Erreur lors de la recherche des threads");
     }
   }
 
@@ -641,7 +1095,6 @@ class ThreadService {
         throw new Error("Thread non trouvé");
       }
 
-      // Supprimer le like
       const result = await Like.findOneAndDelete({
         user: userId,
         thread: threadId,
@@ -651,9 +1104,14 @@ class ThreadService {
         throw new Error("Like non trouvé");
       }
 
-      // Retirer l'utilisateur du tableau likes du thread
-      thread.likes = thread.likes.filter(like => like.toString() !== userId.toString());
+      thread.likes = thread.likes.filter(
+        (like) => like.toString() !== userId.toString(),
+      );
       await thread.save();
+
+      socketService.notifyAuthorThreadUpdate(thread.author, threadId, {
+        likesCount: thread.likes.length,
+      });
 
       return { message: "Like retiré", likesCount: thread.likes.length };
     } catch (error) {

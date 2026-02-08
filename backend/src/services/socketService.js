@@ -12,13 +12,17 @@ class SocketService {
    * Initialiser Socket.IO
    */
   initialize(server) {
-    this.io = new Server(server, {
-      cors: {
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
-        methods: ["GET", "POST"],
-        credentials: true,
-      },
-    });
+   this.io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      process.env.FRONTEND_URL
+    ].filter(Boolean),
+    methods: ["GET", "POST"],
+    credentials: true,
+  }
+});
 
     // Middleware d'authentification
     this.io.use(async (socket, next) => {
@@ -29,7 +33,7 @@ class SocketService {
         }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        socket.userId = decoded.id;
+        socket.userId = String(decoded.id);
         next();
       } catch (error) {
         next(new Error("Token invalide"));
@@ -38,8 +42,8 @@ class SocketService {
 
     // Gestion des connexions
     this.io.on("connection", (socket) => {
-      console.log(`✅ Utilisateur connecté: ${socket.userId}`);
-      
+      console.log(`✅ Socket connecté: user=${socket.userId} (total: ${this.connectedUsers.size + 1})`);
+
       // Ajouter l'utilisateur à la liste des connectés
       this.connectedUsers.set(socket.userId, socket.id);
 
@@ -86,15 +90,40 @@ class SocketService {
   }
 
   /**
+   * Normaliser un ID utilisateur (ObjectId, objet { _id }, ou string)
+   */
+  _normalizeUserId(userId) {
+    if (userId == null) return null;
+    if (typeof userId === "object" && userId._id != null) return String(userId._id);
+    return String(userId);
+  }
+
+  /**
+   * Convertir un doc Mongoose en objet plain pour envoi Socket (éviter erreurs de sérialisation)
+   */
+  _toPlainObject(doc) {
+    if (!doc) return null;
+    if (typeof doc.toObject === "function") return doc.toObject();
+    if (typeof doc === "object" && doc !== null) return JSON.parse(JSON.stringify(doc));
+    return doc;
+  }
+
+  /**
    * Envoyer une notification en temps réel à un utilisateur
+   * userId peut être ObjectId, string ou objet avec _id — normalisé pour la room
    */
   sendNotification(userId, notification) {
-    if (this.io && this.connectedUsers.has(userId)) {
-      this.io.to(`user_${userId}`).emit("new_notification", {
-        type: "new_notification",
-        data: notification,
-        timestamp: new Date().toISOString(),
-      });
+    const uid = this._normalizeUserId(userId);
+    if (!uid || !this.io) return;
+    const room = `user_${uid}`;
+    const payload = {
+      type: "new_notification",
+      data: this._toPlainObject(notification),
+      timestamp: new Date().toISOString(),
+    };
+    this.io.to(room).emit("new_notification", payload);
+    if (process.env.NODE_ENV !== "production") {
+      console.log(`📤 Notification → room ${room} (destinataire connecté: ${this.connectedUsers.has(uid)})`);
     }
   }
 
@@ -103,14 +132,16 @@ class SocketService {
    */
   async sendUnreadCount(userId) {
     try {
+      const uid = this._normalizeUserId(userId);
+      if (!uid) return;
       const Notification = (await import("../models/Notification.js")).default;
       const count = await Notification.countDocuments({
         recipient: userId,
         isRead: false,
       });
 
-      if (this.io && this.connectedUsers.has(userId)) {
-        this.io.to(`user_${userId}`).emit("unread_count", {
+      if (this.io) {
+        this.io.to(`user_${uid}`).emit("unread_count", {
           type: "unread_count",
           data: { count },
           timestamp: new Date().toISOString(),
@@ -167,10 +198,25 @@ class SocketService {
   }
 
   /**
+   * Envoyer une mise à jour de thread à l'auteur (ex: like count) pour affichage temps réel
+   * L'auteur reçoit l'événement dans sa room user_${authorId}
+   */
+  notifyAuthorThreadUpdate(authorId, threadId, update) {
+    const uid = this._normalizeUserId(authorId);
+    if (!uid || !this.io) return;
+    this.io.to(`user_${uid}`).emit("thread_update", {
+      type: "thread_update",
+      data: { threadId, ...update },
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  /**
    * Vérifier si un utilisateur est connecté
    */
   isUserConnected(userId) {
-    return this.connectedUsers.has(userId);
+    const uid = this._normalizeUserId(userId);
+    return uid != null && this.connectedUsers.has(uid);
   }
 
   /**

@@ -1,0 +1,262 @@
+/* MobileBottomNavbar.css - Style Instagram-like avec couleurs du site */
+
+.mobile-bottom-navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 8px 0;
+  z-index: 1000;
+  display: none;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -25px 50px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  min-width: 60px;
+  position: relative;
+}
+
+.mobile-nav-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px;
+  border-radius: 8px;
+  transition: all 0.3s;
+  min-width: 60px;
+  cursor: pointer;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-button:hover {
+  color: var(--brand-primary);
+  background: rgba(79, 208, 76, 0.15);
+  border-color: rgba(79, 208, 76, 0.4);
+  transform: translateY(-2px);
+}
+
+.mobile-nav-item.active,
+.mobile-nav-item.active:hover {
+  color: var(--brand-primary);
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.2), rgba(5, 150, 105, 0.15));
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 20px rgba(79, 208, 76, 0.25);
+}
+
+.mobile-nav-item svg,
+.mobile-nav-button svg {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 2px;
+  transition: transform 0.2s ease;
+}
+
+/* Bouton + pour créer un post - transparent comme les autres icônes */
+.mobile-nav-add-post {
+  background: transparent;
+  color: #64748b;
+  padding: 6px;
+  border-radius: 8px;
+}
+
+.mobile-nav-add-post:hover {
+  background: rgba(79, 208, 76, 0.15);
+  color: var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+.mobile-nav-add-btn {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mobile-nav-add-icon {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 24px;
+  height: 24px;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.mobile-nav-item:hover svg,
+.mobile-nav-button:hover svg {
+  transform: scale(1.1);
+}
+
+/* User Menu */
+.user-menu-container {
+  position: relative;
+}
+
+.mobile-user-menu {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 8px;
+  margin-bottom: 8px;
+  min-width: 180px;
+  box-shadow: 0 -25px 50px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+}
+
+.mobile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.mobile-menu-item:hover {
+  background: rgba(79, 208, 76, 0.15);
+  color: var(--brand-primary);
+  border-color: rgba(79, 208, 76, 0.4);
+  transform: translateX(4px);
+}
+
+.mobile-menu-item.logout {
+  color: #ef4444;
+}
+
+.mobile-menu-item.logout:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  transform: translateX(4px);
+}
+
+.mobile-menu-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.mobile-menu-item:hover svg {
+  transform: scale(1.1);
+}
+
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  cursor: default;
+}
+
+/* Dark Mode - Adapté aux couleurs du site */
+body.dark .mobile-bottom-navbar {
+  background: rgba(17, 17, 21, 0.8);
+  border-top-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 -25px 50px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .mobile-nav-item,
+body.dark .mobile-nav-button {
+  color: #9ca3af;
+}
+
+body.dark .mobile-nav-item:hover,
+body.dark .mobile-nav-button:hover {
+  color: var(--brand-primary);
+  background: rgba(79, 208, 76, 0.15);
+  border-color: rgba(79, 208, 76, 0.4);
+}
+
+body.dark .mobile-nav-item.active,
+body.dark .mobile-nav-item.active:hover {
+  color: var(--brand-primary);
+  background: linear-gradient(135deg, rgba(79, 208, 76, 0.2), rgba(5, 150, 105, 0.15));
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 20px rgba(79, 208, 76, 0.25);
+}
+
+body.dark .mobile-nav-add-post {
+  background: transparent;
+  color: #9ca3af;
+}
+
+body.dark .mobile-nav-add-post:hover {
+  background: rgba(79, 208, 76, 0.15);
+  color: var(--brand-primary);
+}
+
+body.dark .mobile-user-menu {
+  background: rgba(17, 17, 21, 0.8);
+  border-color: rgba(148, 163, 184, 0.2);
+  box-shadow: 0 -25px 50px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .mobile-menu-item {
+  color: #e5e7eb;
+}
+
+body.dark .mobile-menu-item:hover {
+  background: rgba(79, 208, 76, 0.15);
+  color: var(--brand-primary);
+  border-color: rgba(79, 208, 76, 0.4);
+}
+
+/* Mobile Responsive */
+@media (max-width: 699px) {
+  .mobile-bottom-navbar {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-nav-item svg,
+  .mobile-nav-button svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .mobile-nav-item,
+  .mobile-nav-button {
+    font-size: 10px;
+    min-width: 50px;
+  }
+  
+  .mobile-nav-add-icon {
+    font-size: 33px;
+  }
+}
