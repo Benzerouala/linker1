@@ -1,18 +1,22 @@
+# Build stage
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copier les fichiers de dépendances
+# Copy package files first to leverage Docker cache
 COPY package*.json ./
 
-# Installer les dépendances
+# Debug: List files to ensure package.json is copied
+RUN ls -la
+
+# Install dependencies
 RUN npm install --production
 
-# Copier le reste du code
+# Copy the rest of the application code
 COPY . .
 
-# Exposer le port
+# Expose the port the app runs on
 EXPOSE 5000
 
-# Commande de démarrage
+# Start the application
 CMD ["npm", "start"]

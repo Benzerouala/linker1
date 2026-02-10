@@ -1,21 +1,29 @@
-# Étape de build
+# Build stage
 FROM node:18-alpine as build
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
 RUN npm install
 
+# Copy source code
 COPY . .
+
+# Build args for environment variables
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+# Build the application
 RUN npm run build
 
-# Étape de production avec Nginx
+# Production stage
 FROM nginx:alpine
 
-# Copier les fichiers buildés
+# Copy built assets from build stage
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copier la configuration nginx personnalisée pour le frontend (SPA)
+# Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
