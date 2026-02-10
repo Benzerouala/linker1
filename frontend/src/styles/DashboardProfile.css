@@ -1071,6 +1071,11 @@ body.dark .cancel-request-btn {
   background: #ffe4e6;
   transform: translateY(-1px);
 }
+@media (min-width: 700px) and (max-width: 799px) {
+ .profile-page{
+  padding-top: 70px !important;
+ }
+}
 /* ========== MOBILE RESPONSIVE (< 700px) ========== */
 @media (max-width: 699px) {
   .profile-page {
@@ -1078,11 +1083,14 @@ body.dark .cancel-request-btn {
     width: 100%;
     margin: 0;
     padding: 0;
-    padding-bottom: 1.5rem; /* Marge en bas au scroll pour MobileBottomNavbar */
-    height: 100%;
+    /* padding-bottom: 1.5rem;  */
+    max-height: 100%;
     box-sizing: border-box;
+    padding-bottom: 70px !important;  
   }
-
+  .profile-modal{
+    padding-bottom: 110px !important;
+  }
   .profile-logo-section {
     padding: 0;
     margin: 0;
@@ -1131,6 +1139,9 @@ body.dark .cancel-request-btn {
     width: 100%;
     margin: 0;
     flex-wrap: wrap;
+  }
+  .profile-modal-overlay {
+    padding-top: 110px !important;
   }
 
   .profile-name-section {
@@ -1451,7 +1462,6 @@ body.dark .cancel-request-btn {
   .profile-modal-actions {
     padding: 16px 20px 20px;
   }
-
   .cancel-btn,
   .save-btn {
     padding: 8px 16px;

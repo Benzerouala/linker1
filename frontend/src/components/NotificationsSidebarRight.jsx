@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSocket } from "../contexts/SocketContext"; // ✅ Import du context
+import { useSocket } from "../contexts/SocketContext"; 
 import "../styles/NotificationsSidebarRight.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function NotificationsSidebarRight() {
   const [notifications, setNotifications] = useState([]);

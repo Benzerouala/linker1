@@ -6,8 +6,7 @@ import { getImageUrl } from "../../utils/imageHelper"
 import PostCard from "../../components/PostCard"
 import Pagination from "../../components/Pagination"
 import "../../styles/DashboardExplore.css"
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+import API_URL from "../../utils/api"
 
 export default function DashboardExplore() {
   const { user } = useOutletContext()

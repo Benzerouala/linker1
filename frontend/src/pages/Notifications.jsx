@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import NotificationItem from "../components/NotificationItem";
 import MobileBottomNavbar from "../components/MobileBottomNavbar";
 import "../styles/Notifications.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);

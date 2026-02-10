@@ -2,14 +2,13 @@
 import { useState, useEffect } from "react";
 import { useSocket } from "../contexts/SocketContext";
 import { useToastContext } from "../contexts/ToastContext";
+import API_URL from "../utils/api";
 
 export const useRealtimeNotifications = () => {
   const { socket, connected } = useSocket();
   const { success } = useToastContext();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
   // Charger les notifications initiales
   useEffect(() => {
@@ -35,6 +34,22 @@ export const useRealtimeNotifications = () => {
       playNotificationSound();
     });
 
+    // Notification de follow
+    socket.on("follow_notification", (event) => {
+      console.log("👤 Follow notification received:", event);
+      const message = `👤 Quelqu'un vous suit`;
+      success(message);
+      playNotificationSound();
+    });
+
+    // Notification de mention
+    socket.on("mention_notification", (event) => {
+      console.log("@️ Mention notification received:", event);
+      const message = `@️ Vous avez été mentionné`;
+      success(message);
+      playNotificationSound();
+    });
+
     // Compteur de non-lues
     socket.on("unread_count", (event) => {
       console.log("🔢 Unread count updated:", event.data.count);
@@ -43,6 +58,8 @@ export const useRealtimeNotifications = () => {
 
     return () => {
       socket.off("new_notification");
+      socket.off("follow_notification");
+      socket.off("mention_notification");
       socket.off("unread_count");
     };
   }, [socket, connected]);
@@ -111,16 +128,27 @@ export const useRealtimeNotifications = () => {
   const playNotificationSound = () => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = 800;
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.1);
-    } catch (e) {}
+      
+      // Créer un son plus agréable (bip court)
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      // Son de notification (court et agréable)
+      oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+      oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.05);
+      
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.01);
+      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
+      
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 0.1);
+    } catch (e) {
+      console.log("Audio notification not supported");
+    }
   };
 
   return {

@@ -9,8 +9,7 @@ import HomeNavbar from "../components/HomeNavbar";
 import Pagination from "../components/Pagination";
 import { getImageUrl } from "../utils/imageHelper";
 import "../styles/PublicProfile.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function PublicProfile() {
   const { username } = useParams();

@@ -5,8 +5,7 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/Register.css";
 import HomeNavbar from "../components/HomeNavbar";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function Register() {
   const [formData, setFormData] = useState({

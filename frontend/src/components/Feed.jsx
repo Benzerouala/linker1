@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import PostCard from "./PostCard";
 import { useSocket } from "../contexts/SocketContext";
 import "../styles/Feed.css";
-
+import API_URL from "../utils/api";
 const Feed = ({
   newPost,
   type = "explore",
@@ -28,7 +28,8 @@ const Feed = ({
   const observerTarget = useRef(null);
   const fetchedFocusRef = useRef(new Set());
   const scrolledFocusRef = useRef(null);
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  // const API_URL = import.meta.env.VITE_API_URL || "https://backend-linker.onrender.com/api";
+
   const currentUserId = localStorage.getItem("userId");
   const { socket, connected } = useSocket();
 

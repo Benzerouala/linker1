@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useToastContext } from "../contexts/ToastContext";
 import "../styles/EditPostModal.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function EditPostModal({ isOpen, post, onClose, onUpdate }) {
   const { success, error: showError } = useToastContext();

@@ -194,6 +194,16 @@ const CreatePost = ({ onPostCreated }) => {
       formData.append("media", mediaFile);
     }
 
+    // Logs pour débogage
+    console.log("📤 Envoi du post:");
+    console.log("- content:", content);
+    console.log("- content length:", content.length);
+    console.log("- mediaFile:", mediaFile);
+    console.log("- formData entries:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value);
+    }
+
     const response = await fetch(`${API_URL}/threads`, {
       method: "POST",
       headers: {
@@ -202,7 +212,12 @@ const CreatePost = ({ onPostCreated }) => {
       body: formData,
     });
 
-    const data = await response.json();
+    // Log de la réponse brute
+    console.log("📥 Réponse brute:", response.status, response.statusText);
+    const responseText = await response.text();
+    console.log("📥 Réponse texte:", responseText);
+    
+    const data = JSON.parse(responseText);
 
     if (data.success) {
       setContent("");

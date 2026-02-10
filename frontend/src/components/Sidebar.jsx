@@ -1,10 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { getImageUrl } from "../utils/imageHelper";
-import { useSocket } from "../contexts/SocketContext"; // ✅ Import
+import { useSocket } from "../contexts/SocketContext"; 
 import "../styles/Sidebar.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function Sidebar() {
   const token = localStorage.getItem("token");

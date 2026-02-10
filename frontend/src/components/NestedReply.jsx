@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import { getImageUrl } from "../utils/imageHelper";
+import API_URL from "../utils/api";
 
 import ConfirmModal from "./ConfirmModal";
 
@@ -134,11 +135,7 @@ const NestedReply = ({
 
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const baseUrl =
-
-        apiUrl || import.meta.env.VITE_API_URL || "https://backend-linker.onrender.com/api";
-
-      const response = await fetch(`${baseUrl}/replies/${reply._id}/likes`, {
+      const response = await fetch(`${API_URL}/replies/${reply._id}/likes`, {
 
         headers,
 

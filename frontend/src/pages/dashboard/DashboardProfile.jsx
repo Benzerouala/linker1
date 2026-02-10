@@ -5,10 +5,9 @@ import { Link, useOutletContext } from "react-router-dom";
 import { useToastContext } from "../../contexts/ToastContext";
 import PostCard from "../../components/PostCard";
 import Pagination from "../../components/Pagination";
-import { getImageUrl } from "../../utils/imageHelper";
+import { getImageUrl, handleImageError } from "../../utils/imageHelper";
+import API_URL from "../../utils/api";
 import "../../styles/DashboardProfile.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export default function DashboardProfile() {
   const { user, setUser } = useOutletContext();
@@ -658,9 +657,7 @@ export default function DashboardProfile() {
               }
               alt={user?.username || "Profile"}
               className="profile-avatar"
-              onError={(e) => {
-                e.target.src = getImageUrl(null, "avatar", user?.username);
-              }}
+              onError={handleImageError}
             />
           </div>
 
@@ -895,9 +892,7 @@ export default function DashboardProfile() {
                       }
                       className="follow-avatar"
                       alt={f.username}
-                      onError={(e) =>
-                        (e.target.src = getImageUrl(null, "avatar", f.username))
-                      }
+                      onError={handleImageError}
                     />
                     <div className="follow-info">
                       <div className="follow-name">{f.name || f.username}</div>
@@ -941,9 +936,7 @@ export default function DashboardProfile() {
                       }
                       className="follow-avatar"
                       alt={f.username}
-                      onError={(e) =>
-                        (e.target.src = getImageUrl(null, "avatar", f.username))
-                      }
+                      onError={handleImageError}
                     />
                     <div className="follow-info">
                       <div className="follow-name">{f.name || f.username}</div>

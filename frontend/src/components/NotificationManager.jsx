@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import NotificationsSidebar from "./NotificationsSidebar";
 import NotificationToastBottom from "./NotificationToastBottom";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function NotificationManager() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

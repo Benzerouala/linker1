@@ -1,7 +1,7 @@
 .feed {
   display: flex;
   flex-direction: column;
-   padding-top: 35px !important; 
+  padding-top: 35px !important; 
 }
 
 .feed-loading,

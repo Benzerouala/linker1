@@ -3,8 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { getImageUrl } from "../utils/imageHelper";
 import "../styles/TopNavbar.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function TopNavbar() {
   const { theme, toggleTheme } = useTheme();

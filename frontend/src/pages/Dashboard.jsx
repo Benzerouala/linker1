@@ -10,8 +10,7 @@ import TopNavbar from "../components/TopNavbar";
 import MobileBottomNavbar from "../components/MobileBottomNavbar";
 import NotificationsSidebarRight from "../components/NotificationsSidebarRight";
 import "../styles/NotificationManager.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import API_URL from "../utils/api";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);

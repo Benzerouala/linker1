@@ -1,6 +1,7 @@
 // frontend/src/contexts/SocketContext.jsx
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import API_URL from "../utils/api";
 
 const SocketContext = createContext();
 
@@ -16,7 +17,6 @@ export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [connected, setConnected] = useState(false);
   const [tokenVersion, setTokenVersion] = useState(0);
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   // Réagir au login/logout (token changé) pour (re)connecter la socket
   useEffect(() => {

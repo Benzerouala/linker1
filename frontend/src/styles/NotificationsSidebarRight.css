@@ -19,7 +19,7 @@
   min-width: 300px;
   background: var(--bg-primary);
   border-left: 1px solid var(--border-color);
-  min-height: 0; /* pour que la sidebar s’adapte à la hauteur du layout */
+  height: calc(100vh - 80px) !important; /* fixe la hauteur à 150px du haut de l'écran */
   overflow: hidden; /* seul .right-sidebar-content défile, pas tout l'aside */
   position: sticky;
   top: 70px;
