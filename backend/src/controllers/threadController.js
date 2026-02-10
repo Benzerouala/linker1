@@ -28,9 +28,8 @@ class ThreadController {
 
       let media = null;
       if (req.file) {
-        // Cloudinary retourne l'URL dans req.file.path
-        // Stockage local retourne le filename dans req.file.filename
-        const mediaUrl = req.file.path || `/uploads/${req.file.filename}`;
+        // Construct URL for local storage
+        const mediaUrl = `/uploads/${req.file.filename}`;
 
         media = {
           url: mediaUrl,
@@ -236,9 +235,8 @@ class ThreadController {
 
       let media = null;
       if (req.file) {
-        // Cloudinary retourne l'URL dans req.file.path
-        // Stockage local retourne le filename dans req.file.filename
-        const mediaUrl = req.file.path || `/uploads/${req.file.filename}`;
+        // Construct URL for local storage
+        const mediaUrl = `/uploads/${req.file.filename}`;
 
         media = {
           url: mediaUrl,

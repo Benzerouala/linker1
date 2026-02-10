@@ -74,7 +74,15 @@ if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
 
+// Serve uploads directory specifically
 app.use("/uploads", express.static(path.join(__dirname, "src/uploads")));
+
+// Ensure uploads directory exists on startup
+const uploadsDir = path.join(__dirname, "src/uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log("✅ Created uploads directory:", uploadsDir);
+}
 
 // ============= ROUTES =============
 
