@@ -37,12 +37,8 @@ app.use(
       const allowedOrigins = [
         "http://localhost:5173",
         "http://localhost:5174",
-        "http://localhost:5175",
         "http://localhost:3000",
-        "https://linker-fxy0.onrender.com",
-        "https://linker-3.onrender.com", // ✅ Added specific frontend URL
-        "https://backend-app-linker.onrender.com", // ✅ Allow self-origin just in case
-        process.env.FRONTEND_URL,
+        process.env.FRONTEND_URL, // Critical for production
       ].filter(Boolean);
 
       // Check if origin is allowed (exact match)
@@ -50,12 +46,17 @@ app.use(
         return callback(null, true);
       }
 
-      // Check for subdomains on render (e.g. any-app.onrender.com)
-      // This regex allows any subdomain on onrender.com
+      // Allow railway.app subdomains dynamically
+      if (origin && origin.match(/^https:\/\/.*\.railway\.app$/)) {
+        return callback(null, true);
+      }
+
+      // Allow onrender.com subdomains (legacy support)
       if (origin && origin.match(/^https:\/\/.*\.onrender\.com$/)) {
         return callback(null, true);
       }
 
+      console.log("Blocked by CORS:", origin); // Debug log
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
