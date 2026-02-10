@@ -1,14 +1,19 @@
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"
-const BRAND_AVATAR_BG = "4FD04C"
+const getBackendUrl = () => {
+  if (import.meta.env.VITE_BACKEND_URL) return import.meta.env.VITE_BACKEND_URL;
+  if (import.meta.env.VITE_API_URL) {
+    // Remove /api suffix if present to get base URL
+    return import.meta.env.VITE_API_URL.replace(/\/api\/?$/, "");
+  }
+  return "http://localhost:5000";
+};
+
+const BACKEND_URL = getBackendUrl();
+const BRAND_AVATAR_BG = "4FD04C";
 
 export const getImageUrl = (path, type = "avatar", username = "User") => {
-  // En production, utiliser les avatars générés si le backend ne fonctionne pas
-  if (import.meta.env.PROD && type === "avatar") {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      username,
-    )}&size=200&background=${BRAND_AVATAR_BG}&color=fff&bold=true`
-  }
+  // Remove the forced PROD check that was blocking custom avatars
+
 
   if (!path) {
     if (type === "avatar") {
@@ -31,12 +36,12 @@ export const getImageUrl = (path, type = "avatar", username = "User") => {
   // Ensure path starts with /
   const cleanPath = path.startsWith("/") ? path : `/${path}`
   const fullUrl = `${BACKEND_URL}${cleanPath}`
-  
+
   // Ajouter un timestamp pour éviter le cache si c'est une image d'utilisateur
   if (type === "avatar" || type === "cover" || type === "media") {
     return `${fullUrl}?t=${Date.now()}`
   }
-  
+
   return fullUrl
 }
 
