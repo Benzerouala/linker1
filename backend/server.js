@@ -115,23 +115,6 @@ if (process.env.NODE_ENV !== "production") {
 
 app.use("/api", routes);
 
-// Serve static assets in production
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "public")));
-
-  app.get("*", (req, res) => {
-    // Exclude API routes from wildcard match to prevent index.html from intercepting API 404s
-    if (req.path.startsWith("/api")) {
-      return res.status(404).json({
-        success: false,
-        message: "Route non trouvée",
-        path: req.originalUrl,
-      });
-    }
-    res.sendFile(path.resolve(__dirname, "public", "index.html"));
-  });
-}
-
 // ============= GESTION DES ERREURS =============
 
 app.use((req, res, next) => {

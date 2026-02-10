@@ -6,8 +6,6 @@ WORKDIR /app
 # Copy package files first to leverage Docker cache
 COPY package*.json ./
 
-# Debug: List files to ensure package.json is copied
-RUN ls -la
 
 # Install dependencies
 RUN npm install --production
